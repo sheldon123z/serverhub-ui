@@ -39,7 +39,7 @@ export function TeamDetail({ team, onBack }: { team: Team; onBack: () => void })
     <div>
       <button onClick={onBack} className="text-text3 text-xs hover:text-text mb-3">← 返回列表</button>
 
-      <div className="bg-card border border-border rounded-lg p-4 mb-4">
+      <div className="glass rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-text">{team.name}</h3>
           <div className="flex gap-2">

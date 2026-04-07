@@ -27,7 +27,7 @@ export function CreateTeamModal({ onDone }: { onDone: () => void }) {
   })
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mb-4">
+    <div className="glass rounded-lg p-4 mb-4">
       <h3 className="text-sm font-medium mb-3">创建团队</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="团队名称" className="bg-bg border border-border rounded-md px-3 py-2 text-sm text-text focus:border-accent focus:outline-none" />

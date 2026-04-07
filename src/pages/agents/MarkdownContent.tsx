@@ -369,7 +369,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
             },
             tr({ children }) {
               return (
-                <tr className="hover:bg-bg2/50 transition-colors">{children}</tr>
+                <tr className="hover:bg-card/50 transition-colors">{children}</tr>
               );
             },
             th({ children }) {

@@ -70,7 +70,7 @@ export function SkillLoadedCard({ skillInfo }: SkillLoadedCardProps) {
               onClick={() => setExpanded(!expanded)}
               className={cn(
                 'flex items-center justify-center w-6 h-6 rounded-md',
-                'text-text3 hover:text-text2 hover:bg-bg2',
+                'text-text3 hover:text-text2 hover:bg-card',
                 'transition-colors duration-150',
               )}
             >

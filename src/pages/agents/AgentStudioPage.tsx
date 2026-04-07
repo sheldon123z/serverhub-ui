@@ -64,7 +64,7 @@ function TabButton({
       className={
         active
           ? 'rounded-lg bg-accent-dim px-3 py-2 text-sm text-accent'
-          : 'rounded-lg px-3 py-2 text-sm text-text2 transition-colors hover:bg-bg2 hover:text-text'
+          : 'rounded-lg px-3 py-2 text-sm text-text2 transition-colors hover:bg-card hover:text-text'
       }
     >
       {label}
@@ -681,7 +681,7 @@ function SubagentsTab() {
                   <button
                     type="button"
                     onClick={() => setEditingSubagent(null)}
-                    className="rounded-lg border border-border px-4 py-1.5 text-xs text-text transition-colors hover:bg-bg2"
+                    className="rounded-lg border border-border px-4 py-1.5 text-xs text-text transition-colors hover:bg-card"
                   >
                     取消
                   </button>
@@ -1023,7 +1023,7 @@ function AsyncTasksTab() {
               key={t.id}
               onClick={() => setSelectedId(t.id === selectedId ? null : t.id)}
               className={`cursor-pointer rounded-lg border p-3 transition-colors ${
-                selectedId === t.id ? 'border-accent/50 bg-bg2' : 'border-border hover:bg-bg2'
+                selectedId === t.id ? 'border-accent/50 bg-bg2' : 'border-border hover:bg-card'
               }`}
             >
               <div className="flex items-center justify-between gap-2">

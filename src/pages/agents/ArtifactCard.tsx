@@ -23,7 +23,7 @@ export function ArtifactCard({ filePath, action }: ArtifactCardProps) {
       onClick={() => useArtifactStore.getState().select(filePath)}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs',
-        'text-text transition-colors hover:bg-bg2 cursor-pointer',
+        'text-text transition-colors hover:bg-card cursor-pointer',
       )}
     >
       <FileText size={12} className="shrink-0 text-accent" />

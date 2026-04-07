@@ -143,7 +143,7 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
 
     return (
       <div
-        className="absolute bottom-full left-0 right-0 mb-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden z-50"
+        className="absolute bottom-full left-0 right-0 mb-1 glass rounded-lg shadow-xl overflow-hidden z-50"
         ref={listRef}
       >
         <div className="slash-list max-h-60 overflow-y-auto py-1">
@@ -163,7 +163,7 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
                   'w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors',
                   flatIndex === activeIndex
                     ? 'bg-accent-dim text-accent'
-                    : 'text-text hover:bg-bg2',
+                    : 'text-text hover:bg-card',
                 )}
                 onMouseEnter={() => setActiveIndex(flatIndex)}
                 onMouseDown={(e) => {

@@ -88,7 +88,7 @@ function FileDetail({ filePath, inlineContent }: { filePath: string; inlineConte
           {!showImage && (
             <button
               onClick={handleCopy}
-              className="rounded p-1 text-text3 transition-colors hover:bg-bg2 hover:text-text"
+              className="rounded p-1 text-text3 transition-colors hover:bg-card hover:text-text"
               title="复制"
             >
               <Copy size={13} />
@@ -96,14 +96,14 @@ function FileDetail({ filePath, inlineContent }: { filePath: string; inlineConte
           )}
           <a
             href={downloadUrl}
-            className="rounded p-1 text-text3 transition-colors hover:bg-bg2 hover:text-text"
+            className="rounded p-1 text-text3 transition-colors hover:bg-card hover:text-text"
             title="下载"
           >
             <Download size={13} />
           </a>
           <button
             onClick={deselect}
-            className="rounded p-1 text-text3 transition-colors hover:bg-bg2 hover:text-text"
+            className="rounded p-1 text-text3 transition-colors hover:bg-card hover:text-text"
             title="关闭"
           >
             <X size={13} />
@@ -204,7 +204,7 @@ export function ArtifactsPanel() {
                 key={item.filePath}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2 text-left transition-colors',
-                  isSelected ? 'bg-accent-dim' : 'hover:bg-bg2',
+                  isSelected ? 'bg-accent-dim' : 'hover:bg-card',
                 )}
                 onClick={() => select(item.filePath)}
               >

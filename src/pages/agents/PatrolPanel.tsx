@@ -148,7 +148,7 @@ function TasksView() {
             key={t.id}
             className={cn(
               'w-full text-left px-3 py-2.5 border-b border-border text-xs transition-colors',
-              selectedId === t.id ? 'bg-card' : 'hover:bg-bg2',
+              selectedId === t.id ? 'bg-card' : 'hover:bg-card',
             )}
             onClick={() => {
               setSelectedId(t.id)
@@ -356,7 +356,7 @@ function AlertsView() {
         <button
           className={cn(
             'w-full text-left px-3 py-2 border-b border-border text-xs transition-colors',
-            !selectedId ? 'bg-card' : 'hover:bg-bg2',
+            !selectedId ? 'bg-card' : 'hover:bg-card',
           )}
           onClick={() => setSelectedId(null)}
         >
@@ -368,7 +368,7 @@ function AlertsView() {
             key={r.id}
             className={cn(
               'w-full text-left px-3 py-2 border-b border-border text-xs transition-colors',
-              selectedId === r.id ? 'bg-card' : 'hover:bg-bg2',
+              selectedId === r.id ? 'bg-card' : 'hover:bg-card',
               !getField(r, 'enabled') && 'opacity-50',
             )}
             onClick={() => setSelectedId(r.id)}
@@ -586,7 +586,7 @@ function TemplatesView() {
                   key={t.id}
                   className={cn(
                     'w-full text-left px-3 py-2.5 border-b border-border text-xs transition-colors',
-                    selectedId === t.id ? 'bg-card' : 'hover:bg-bg2',
+                    selectedId === t.id ? 'bg-card' : 'hover:bg-card',
                   )}
                   onClick={() => setSelectedId(t.id)}
                 >
@@ -607,7 +607,7 @@ function TemplatesView() {
             key={t.id}
             className={cn(
               'w-full text-left px-3 py-2.5 border-b border-border text-xs transition-colors',
-              selectedId === t.id ? 'bg-card' : 'hover:bg-bg2',
+              selectedId === t.id ? 'bg-card' : 'hover:bg-card',
             )}
             onClick={() => setSelectedId(t.id)}
           >
@@ -736,7 +736,7 @@ function TemplatesView() {
             </div>
             <div className="flex justify-end gap-2 mt-5">
               <button
-                className="px-3 py-1.5 text-xs rounded border border-border text-text2 hover:bg-bg2"
+                className="px-3 py-1.5 text-xs rounded border border-border text-text2 hover:bg-card"
                 onClick={() => setCreateState((s) => ({ ...s, show: false }))}
               >
                 取消
@@ -812,7 +812,7 @@ function ReportsView() {
             key={r.id}
             className={cn(
               'w-full text-left px-3 py-2.5 border-b border-border text-xs transition-colors',
-              selectedId === r.id ? 'bg-card' : 'hover:bg-bg2',
+              selectedId === r.id ? 'bg-card' : 'hover:bg-card',
             )}
             onClick={() => setSelectedId(r.id)}
           >
@@ -1005,7 +1005,7 @@ function CasesView() {
                 key={c.id}
                 className={cn(
                   'group border-b border-border text-xs',
-                  selectedId === c.id ? 'bg-card' : 'hover:bg-bg2',
+                  selectedId === c.id ? 'bg-card' : 'hover:bg-card',
                 )}
               >
                 <button className="w-full text-left px-3 py-2.5 transition-colors" onClick={() => setSelectedId(c.id)}>
@@ -1129,7 +1129,7 @@ function PatrolAdminView() {
         return (
           <div key={p.id} className="border border-border rounded">
             <button
-              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-bg2 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-card transition-colors"
               onClick={() => toggleOpen(p.id)}
             >
               <span className="text-[10px] text-text3">{isOpen ? '\u25BC' : '\u25B6'}</span>

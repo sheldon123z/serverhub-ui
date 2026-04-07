@@ -14,6 +14,7 @@ import { MessageGroup } from '@/components/chat/MessageGroup'
 import { ToolCallCard } from '@/components/chat/ToolCallCard'
 import { FollowUpSuggestions } from '@/components/chat/FollowUpSuggestions'
 import { SkeletonMessage } from '@/components/chat/SkeletonMessage'
+import { ToolCallSpinner } from '@/components/chat/ToolCallSpinner'
 import { useFollowUpSuggestions } from '@/hooks/useFollowUpSuggestions'
 import { MessageBubble } from './MessageBubble'
 import { ToolApprovalInterrupt } from './ToolApprovalInterrupt'
@@ -256,7 +257,28 @@ export function ChatPanel() {
             </div>
           )}
           <div className="flex flex-col gap-2.5">{processedMessages.map(renderProcessedMessage)}</div>
-          {isStreaming && <div className="px-3"><SkeletonMessage /></div>}
+          {isStreaming && (() => {
+            // 只取最后一个 assistant 消息组的工具调用（当前轮次）
+            const lastAssistantPM = [...processedMessages]
+              .reverse()
+              .find((pm) => pm.message.role === 'assistant')
+            const currentToolCalls = lastAssistantPM?.toolCalls ?? []
+            const activeToolCalls = currentToolCalls.filter((tc) => tc.status === 'pending')
+            const completedCount = currentToolCalls.filter((tc) => tc.status === 'completed').length
+
+            if (activeToolCalls.length > 0 || completedCount > 0) {
+              return (
+                <div className="px-3">
+                  <ToolCallSpinner
+                    activeToolCalls={activeToolCalls}
+                    completedCount={completedCount}
+                    totalCount={currentToolCalls.length}
+                  />
+                </div>
+              )
+            }
+            return <div className="px-3"><SkeletonMessage /></div>
+          })()}
         </div>
         {!isAtBottom && messages.length > 0 && (
           <button

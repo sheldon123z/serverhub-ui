@@ -84,7 +84,7 @@ export function SkillEvalPanel({ skillId }: SkillEvalPanelProps) {
                 'px-2.5 py-1 text-xs rounded transition-colors',
                 activeTab === t
                   ? 'bg-accent-dim text-accent'
-                  : 'text-text3 hover:text-text hover:bg-bg2',
+                  : 'text-text3 hover:text-text hover:bg-card',
               )}
               onClick={() => setActiveTab(t)}
             >

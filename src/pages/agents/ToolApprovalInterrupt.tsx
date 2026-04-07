@@ -165,7 +165,7 @@ export function ToolApprovalInterrupt({
             disabled={loading}
             className={cn(
               btnBase,
-              'bg-bg2 text-text2 border border-border hover:bg-bg2/80',
+              'bg-bg2 text-text2 border border-border hover:bg-card/80',
             )}
           >
             编辑
@@ -204,7 +204,7 @@ export function ToolApprovalInterrupt({
               disabled={loading}
               className={cn(
                 btnBase,
-                'bg-bg2 text-text2 border border-border hover:bg-bg2/80',
+                'bg-bg2 text-text2 border border-border hover:bg-card/80',
               )}
             >
               取消
@@ -259,7 +259,7 @@ export function ToolApprovalInterrupt({
               disabled={loading}
               className={cn(
                 btnBase,
-                'bg-bg2 text-text2 border border-border hover:bg-bg2/80',
+                'bg-bg2 text-text2 border border-border hover:bg-card/80',
               )}
             >
               取消

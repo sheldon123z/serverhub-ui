@@ -43,7 +43,7 @@ export const SubAgentIndicator = React.memo<SubAgentIndicatorProps>(
           onClick={handleToggle}
           className={cn(
             'w-full flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors',
-            'bg-bg2 border-border hover:bg-bg2/80',
+            'bg-bg2 border-border hover:bg-card/80',
             expanded && 'rounded-b-none'
           )}
         >

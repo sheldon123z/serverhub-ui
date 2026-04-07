@@ -91,7 +91,7 @@ function RoleModal({ initial, editingId, onClose, onSave, isPending }: RoleModal
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
       <div
-        className="bg-card border border-border rounded-lg p-6 w-full max-w-md shadow-xl"
+        className="glass rounded-lg p-6 w-full max-w-md shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-text mb-4">
@@ -138,7 +138,7 @@ function RoleModal({ initial, editingId, onClose, onSave, isPending }: RoleModal
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-bg2"
+              className="px-4 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-card"
             >
               取消
             </button>
@@ -165,7 +165,7 @@ interface RoleDetailProps {
 
 function RoleDetail({ role, onClose }: RoleDetailProps) {
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div className="glass rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-semibold text-text">{role.display_name || role.name}</h3>
@@ -321,7 +321,7 @@ export default function RolesPage() {
 
       <div className={cn('grid gap-4', selectedRole ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1')}>
         {/* Role list */}
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-text3 text-left">
@@ -355,7 +355,7 @@ export default function RolesPage() {
                       'border-b border-border cursor-pointer transition-colors',
                       selectedRoleId === role.id
                         ? 'bg-accent-dim'
-                        : 'hover:bg-bg2/50',
+                        : 'hover:bg-card/50',
                     )}
                   >
                     <td className="px-4 py-2.5 font-mono text-text text-xs">{role.name}</td>
@@ -379,7 +379,7 @@ export default function RolesPage() {
                       <div className="flex justify-end gap-1.5">
                         <button
                           onClick={(e) => openEdit(role, e)}
-                          className="px-2 py-1 rounded text-xs border border-border text-text2 hover:bg-bg2"
+                          className="px-2 py-1 rounded text-xs border border-border text-text2 hover:bg-card"
                         >
                           编辑
                         </button>

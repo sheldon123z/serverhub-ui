@@ -21,7 +21,7 @@ export function ExecutionDetail({ executionId }: { executionId: string }) {
   if (!data) return null
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mt-4">
+    <div className="glass rounded-lg p-4 mt-4">
       <h3 className="text-sm font-medium mb-2">执行详情</h3>
       <div className="space-y-1 text-xs">
         <p><span className="text-text3">状态:</span> <span className={cn('px-1.5 py-0.5 rounded font-medium', STATUS_BADGES[data.status] ?? '')}>{data.status}</span></p>

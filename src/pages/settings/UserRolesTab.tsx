@@ -150,7 +150,7 @@ function UserRolePanel({ user, allRoles, onClose }: UserRolePanelProps) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mt-1">
+    <div className="glass rounded-lg p-4 mt-1">
       <div className="flex items-start justify-between mb-3">
         <div>
           <p className="font-medium text-text text-sm">
@@ -246,7 +246,7 @@ export default function UserRolesTab() {
       </div>
 
       {/* User list */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-text3 text-left">
@@ -280,7 +280,7 @@ export default function UserRolesTab() {
                       onClick={() => toggleUser(user.id)}
                       className={cn(
                         'border-b border-border cursor-pointer transition-colors',
-                        isExpanded ? 'bg-accent-dim' : 'hover:bg-bg2/50',
+                        isExpanded ? 'bg-accent-dim' : 'hover:bg-card/50',
                       )}
                     >
                       <td className="px-4 py-2.5 font-medium text-text">{user.username}</td>

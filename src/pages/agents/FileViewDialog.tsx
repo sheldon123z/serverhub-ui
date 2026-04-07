@@ -122,7 +122,7 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
               {onSave && !isEditing && (
                 <button
                   onClick={handleEdit}
-                  className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text2 transition-colors hover:bg-bg2 hover:text-text"
+                  className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text2 transition-colors hover:bg-card hover:text-text"
                   title="编辑"
                 >
                   <Edit size={13} />
@@ -133,7 +133,7 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
               {/* Copy */}
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text2 transition-colors hover:bg-bg2 hover:text-text"
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text2 transition-colors hover:bg-card hover:text-text"
                 title="复制"
               >
                 <Copy size={13} />
@@ -143,7 +143,7 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
               {/* Download */}
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text2 transition-colors hover:bg-bg2 hover:text-text"
+                className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text2 transition-colors hover:bg-card hover:text-text"
                 title="下载"
               >
                 <Download size={13} />
@@ -153,7 +153,7 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
               {/* Close */}
               <button
                 onClick={onClose}
-                className="ml-1 rounded p-1 text-text2 transition-colors hover:bg-bg2 hover:text-text"
+                className="ml-1 rounded p-1 text-text2 transition-colors hover:bg-card hover:text-text"
                 title="关闭"
               >
                 <X size={15} />

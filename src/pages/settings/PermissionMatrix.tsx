@@ -219,7 +219,7 @@ export default function PermissionMatrix({ roleId, permissions, readonly = false
           </thead>
           <tbody>
             {RESOURCES.map((r) => (
-              <tr key={r.key} className="border-b border-border/50 hover:bg-bg2/30">
+              <tr key={r.key} className="border-b border-border/50 hover:bg-card/30">
                 <td className="px-3 py-2 text-text2 text-xs font-medium">{r.label}</td>
                 {ACTIONS.map((a) => {
                   const cell = matrix[r.key][a.key]

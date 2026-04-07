@@ -66,7 +66,7 @@ export function SafetyToggle({ value, onChange }: SafetyToggleProps) {
             </p>
             <div className="flex justify-end gap-2">
               <button
-                className="px-3 py-1.5 text-xs rounded text-text3 hover:text-text hover:bg-bg2 transition-colors"
+                className="px-3 py-1.5 text-xs rounded text-text3 hover:text-text hover:bg-card transition-colors"
                 onClick={() => setShowConfirm(false)}
               >
                 取消

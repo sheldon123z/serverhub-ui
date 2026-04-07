@@ -54,7 +54,7 @@ export function MembersTab({ teamId }: { teamId: string }) {
       )}
 
       {showAdd && (
-        <div className="bg-card border border-border rounded-lg p-4 mb-4">
+        <div className="glass rounded-lg p-4 mb-4">
           <h3 className="text-sm font-medium mb-3">添加成员</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
             <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="成员名称" className="bg-bg border border-border rounded-md px-3 py-2 text-sm text-text focus:border-accent focus:outline-none" />
@@ -105,7 +105,7 @@ export function MembersTab({ teamId }: { teamId: string }) {
       </div>
 
       {editingId && (
-        <div className="bg-card border border-border rounded-lg p-4 mt-4">
+        <div className="glass rounded-lg p-4 mt-4">
           <h3 className="text-sm font-medium mb-2">编辑成员</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
             <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="bg-bg border border-border rounded px-2 py-1 text-xs text-text focus:border-accent focus:outline-none" />

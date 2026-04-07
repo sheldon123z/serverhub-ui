@@ -121,7 +121,7 @@ export function SkillsTab() {
                 'px-3 py-1.5 text-xs rounded-lg transition-colors',
                 view === v
                   ? 'bg-accent-dim text-accent'
-                  : 'text-text3 hover:text-text hover:bg-bg2',
+                  : 'text-text3 hover:text-text hover:bg-card',
               )}
               onClick={() => setView(v)}
             >
