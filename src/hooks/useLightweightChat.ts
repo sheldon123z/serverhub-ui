@@ -16,11 +16,22 @@ interface UseLightweightChatReturn {
 let _msgCounter = 0
 function nextId() { return `lc_${++_msgCounter}_${Date.now()}` }
 
+/** 兼容非 HTTPS 环境（LAN 访问）的 UUID 生成 */
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
+
 export function useLightweightChat({ pageContext }: UseLightweightChatOptions): UseLightweightChatReturn {
   const [messages, setMessages] = useState<LightChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
-  const conversationId = useRef<string>(crypto.randomUUID())
+  const conversationId = useRef<string>(generateUUID())
 
   const sendMessage = useCallback(async (text: string) => {
     abortRef.current?.abort()
@@ -121,7 +132,7 @@ export function useLightweightChat({ pageContext }: UseLightweightChatOptions): 
     abortRef.current?.abort()
     setMessages([])
     setIsStreaming(false)
-    conversationId.current = crypto.randomUUID()
+    conversationId.current = generateUUID()
   }, [])
 
   const cancelStreaming = useCallback(() => {
