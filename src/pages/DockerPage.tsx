@@ -306,19 +306,19 @@ export default function DockerPage() {
 
       {/* Stat summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <div className="text-text3 text-xs uppercase mb-1">容器总数</div>
           <div className="text-2xl font-bold text-text">{allContainers.length}</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <div className="text-text3 text-xs uppercase mb-1">运行中</div>
           <div className="text-2xl font-bold text-green">{runningCount}</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <div className="text-text3 text-xs uppercase mb-1">镜像数</div>
           <div className="text-2xl font-bold text-accent">{allImages.length}</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <div className="text-text3 text-xs uppercase mb-1">堆栈数</div>
           <div className="text-2xl font-bold text-yellow">{allStacks.length}</div>
         </div>
@@ -342,7 +342,7 @@ export default function DockerPage() {
 
       {/* ── 容器 Tab ── */}
       {tab === '容器' && (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           {loadingContainers ? (
             <div className="text-text3 text-sm py-8 text-center">加载中...</div>
           ) : (
@@ -362,8 +362,8 @@ export default function DockerPage() {
                   <React.Fragment key={c.name}>
                     <tr
                       className={cn(
-                        'border-b border-border hover:bg-bg2/50 cursor-pointer transition-colors',
-                        expandedContainer === c.name && 'bg-bg2/50',
+                        'border-b border-border hover:bg-card cursor-pointer transition-colors',
+                        expandedContainer === c.name && 'bg-card',
                       )}
                       onClick={() =>
                         setExpandedContainer(expandedContainer === c.name ? null : c.name)
@@ -472,7 +472,7 @@ export default function DockerPage() {
       {tab === '堆栈' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {stacks.map((s) => (
-            <div key={s.name} className="bg-card border border-border rounded-lg p-4 space-y-3">
+            <div key={s.name} className="glass rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-text">{s.display_name || s.name}</h3>
                 <span
@@ -532,7 +532,7 @@ export default function DockerPage() {
             {pullMut.isPending ? '拉取中...' : 'Pull'}
           </button>
         </div>
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
@@ -546,7 +546,7 @@ export default function DockerPage() {
             </thead>
             <tbody>
               {images.map((img) => (
-                <tr key={img.ID} className="border-b border-border hover:bg-bg2/50 transition-colors">
+                <tr key={img.ID} className="border-b border-border hover:bg-card transition-colors">
                   <td className="px-4 py-3 text-text">{img.Repository}</td>
                   <td className="px-4 py-3 text-text3">{img.Tag}</td>
                   <td className="px-4 py-3 text-text3 font-mono text-xs">{img.ID?.slice(0, 12)}</td>
@@ -584,7 +584,7 @@ export default function DockerPage() {
 
       {/* ── 网络 Tab ── */}
       {tab === '网络' && (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
@@ -596,7 +596,7 @@ export default function DockerPage() {
             </thead>
             <tbody>
               {networks.map((n) => (
-                <tr key={n.ID || n.Name} className="border-b border-border hover:bg-bg2/50 transition-colors">
+                <tr key={n.ID || n.Name} className="border-b border-border hover:bg-card transition-colors">
                   <td className="px-4 py-3 text-text font-medium">{n.Name}</td>
                   <td className="px-4 py-3 text-text3">{n.Driver}</td>
                   <td className="px-4 py-3 text-text3">{n.Scope}</td>
@@ -617,7 +617,7 @@ export default function DockerPage() {
 
       {/* ── 卷 Tab ── */}
       {tab === '卷' && (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
@@ -628,7 +628,7 @@ export default function DockerPage() {
             </thead>
             <tbody>
               {volumes.map((v) => (
-                <tr key={v.Name} className="border-b border-border hover:bg-bg2/50 transition-colors">
+                <tr key={v.Name} className="border-b border-border hover:bg-card transition-colors">
                   <td className="px-4 py-3 text-text font-medium">{v.Name}</td>
                   <td className="px-4 py-3 text-text3">{v.Driver}</td>
                   <td className="px-4 py-3 text-text3 font-mono text-xs max-w-md truncate">{v.Mountpoint}</td>

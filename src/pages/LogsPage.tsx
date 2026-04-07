@@ -213,7 +213,7 @@ export default function LogsPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-text">日志查看</h2>
         {filesData && (
-          <div className="bg-card border border-border rounded-lg px-4 py-2 flex items-center gap-2">
+          <div className="glass rounded-lg px-4 py-2 flex items-center gap-2">
             <span className="text-text3 text-xs uppercase">日志文件数</span>
             <span className="text-lg font-bold text-accent">{filesData.count}</span>
           </div>
@@ -222,7 +222,7 @@ export default function LogsPage() {
 
       <div className="flex gap-4 h-[calc(100vh-14rem)]">
         {/* 左侧文件列表 */}
-        <div className="w-64 shrink-0 bg-card border border-border rounded-lg overflow-hidden flex flex-col">
+        <div className="w-64 shrink-0 glass rounded-lg overflow-hidden flex flex-col">
           <div className="px-3 py-2.5 border-b border-border text-xs text-text3 font-medium">
             日志文件 {filesData && `(${filesData.count})`}
           </div>

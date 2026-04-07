@@ -197,19 +197,19 @@ export default function ServicesPage() {
       {/* Stat summary cards */}
       {!isLoading && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="glass rounded-lg p-4">
             <div className="text-text3 text-xs uppercase mb-1">总服务数</div>
             <div className="text-2xl font-bold text-text">{totalCount}</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="glass rounded-lg p-4">
             <div className="text-text3 text-xs uppercase mb-1">运行中</div>
             <div className="text-2xl font-bold text-green">{runningCount}</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="glass rounded-lg p-4">
             <div className="text-text3 text-xs uppercase mb-1">已停止</div>
             <div className="text-2xl font-bold text-red">{stoppedCount}</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="glass rounded-lg p-4">
             <div className="text-text3 text-xs uppercase mb-1">开机启动</div>
             <div className="text-2xl font-bold text-accent">{autoStartCount}</div>
           </div>
@@ -219,7 +219,7 @@ export default function ServicesPage() {
       {isLoading ? (
         <div className="text-text3 text-sm py-8 text-center">加载中...</div>
       ) : (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
@@ -236,8 +236,8 @@ export default function ServicesPage() {
                 <React.Fragment key={svc.name}>
                   <tr
                     className={cn(
-                      'border-b border-border hover:bg-bg2/50 cursor-pointer transition-colors',
-                      expanded === svc.name && 'bg-bg2/50',
+                      'border-b border-border hover:bg-card cursor-pointer transition-colors',
+                      expanded === svc.name && 'bg-card',
                     )}
                     onClick={() => setExpanded(expanded === svc.name ? null : svc.name)}
                   >
@@ -317,7 +317,7 @@ export default function ServicesPage() {
                       <td colSpan={6} className="px-4 py-4 bg-bg/50">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           {/* Resource usage */}
-                          <div className="bg-card border border-border rounded-lg p-4">
+                          <div className="glass rounded-lg p-4">
                             <h4 className="text-xs uppercase text-text3 mb-3">资源使用</h4>
                             {resources ? (
                               <dl className="space-y-2 text-sm">
@@ -334,7 +334,7 @@ export default function ServicesPage() {
                           </div>
 
                           {/* Dependencies */}
-                          <div className="bg-card border border-border rounded-lg p-4">
+                          <div className="glass rounded-lg p-4">
                             <h4 className="text-xs uppercase text-text3 mb-3">依赖关系</h4>
                             {deps ? (
                               <div className="space-y-2 text-sm">
@@ -364,7 +364,7 @@ export default function ServicesPage() {
                           </div>
 
                           {/* Journal */}
-                          <div className="bg-card border border-border rounded-lg p-4 lg:col-span-1">
+                          <div className="glass rounded-lg p-4 lg:col-span-1">
                             <h4 className="text-xs uppercase text-text3 mb-3">日志 (最近 50 行)</h4>
                             <pre className="text-xs text-text3 font-mono whitespace-pre-wrap max-h-64 overflow-y-auto bg-bg rounded p-2">
                               {journal?.journal || '加载中...'}
