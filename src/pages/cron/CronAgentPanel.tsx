@@ -66,16 +66,41 @@ ${jobList || '(none)'}
 `
 }
 
+const PROMPT_STORAGE_KEY = 'serverhub-cron-agent-prompt'
+
 export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronAgentPanelProps) {
   void useServerStore(s => s.selectedServerId)
-  const pageContext = buildPageContext(currentUsername, existingJobs)
 
-  const { messages, isStreaming, sendMessage, clearMessages, cancelStreaming } = useLightweightChat({ pageContext })
+  // Prompt 配置
+  const defaultPrompt = buildPageContext(currentUsername, existingJobs)
+  const [showPromptEditor, setShowPromptEditor] = useState(false)
+  const [editingPrompt, setEditingPrompt] = useState(() => {
+    return localStorage.getItem(PROMPT_STORAGE_KEY) || ''
+  })
+  const activePrompt = editingPrompt.trim() || defaultPrompt
+
+  const { messages, isStreaming, sendMessage, clearMessages, cancelStreaming } = useLightweightChat({ pageContext: activePrompt })
 
   const [scriptContent, setScriptContent] = useState('')
   const [scriptPath, setScriptPath] = useState('')
   const [scriptOriginal, setScriptOriginal] = useState('')
   const [input, setInput] = useState('')
+
+  const handleSavePrompt = useCallback(() => {
+    if (editingPrompt.trim()) {
+      localStorage.setItem(PROMPT_STORAGE_KEY, editingPrompt)
+      toast.success('Prompt 已保存')
+    } else {
+      localStorage.removeItem(PROMPT_STORAGE_KEY)
+      toast.success('已恢复默认 Prompt')
+    }
+  }, [editingPrompt])
+
+  const handleResetPrompt = useCallback(() => {
+    setEditingPrompt('')
+    localStorage.removeItem(PROMPT_STORAGE_KEY)
+    toast.success('已恢复默认 Prompt')
+  }, [])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -130,6 +155,15 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
         <span className="text-[13px] font-semibold text-text flex-1">Cron AI 助手</span>
         <span className="text-[10px] text-text3 bg-card px-2 py-0.5 rounded">{existingJobs.length} 个现有任务</span>
         <button
+          onClick={() => setShowPromptEditor(v => !v)}
+          className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
+            showPromptEditor ? 'bg-accent/15 text-accent' : 'text-text3 hover:text-text hover:bg-card'
+          }`}
+          title="配置系统 Prompt"
+        >
+          ⚙️
+        </button>
+        <button
           onClick={clearMessages}
           className="text-[10px] text-text3 hover:text-text px-1.5 py-0.5 rounded hover:bg-card"
           title="清空对话"
@@ -143,6 +177,41 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
           ✕
         </button>
       </div>
+
+      {/* Prompt 配置面板（可折叠） */}
+      {showPromptEditor && (
+        <div className="border-b border-border flex-shrink-0 bg-bg2/50">
+          <div className="px-3 py-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11px] font-semibold text-text2">系统 Prompt 配置</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleResetPrompt}
+                  className="text-[10px] text-text3 hover:text-text px-2 py-0.5 rounded border border-border hover:border-border-light transition-colors"
+                >
+                  恢复默认
+                </button>
+                <button
+                  onClick={handleSavePrompt}
+                  className="text-[10px] font-semibold bg-accent text-[#0f172a] px-2 py-0.5 rounded hover:opacity-90 transition-opacity"
+                >
+                  保存
+                </button>
+              </div>
+            </div>
+            <textarea
+              value={editingPrompt || defaultPrompt}
+              onChange={e => setEditingPrompt(e.target.value)}
+              rows={8}
+              className="w-full resize-y glass rounded-md px-2.5 py-2 text-[11px] font-mono text-text2 leading-relaxed focus:border-accent/50 focus:outline-none"
+              placeholder="输入自定义 Prompt，留空则使用默认..."
+            />
+            <div className="text-[9px] text-text3 mt-1">
+              {editingPrompt.trim() ? '✏️ 使用自定义 Prompt' : '📋 使用默认 Prompt'} · 保存后对新对话生效
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main content: chat + script preview (resizable) */}
       <ResizablePanelGroup className="flex-1 min-h-0">
