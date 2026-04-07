@@ -1,6 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { diffLines } from 'diff'
 import { cn } from '@/lib/utils'
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { detectLanguage } from '@/types/cron-agent'
 
 interface ScriptPreviewEditorProps {
   content: string
@@ -11,7 +14,7 @@ interface ScriptPreviewEditorProps {
   onSendToAI?: (selectedText: string) => void
 }
 
-type ViewMode = 'edit' | 'diff'
+type ViewMode = 'view' | 'edit' | 'diff'
 
 export function ScriptPreviewEditor({
   content,
@@ -21,7 +24,7 @@ export function ScriptPreviewEditor({
   onWriteToServer,
   onSendToAI,
 }: ScriptPreviewEditorProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('edit')
+  const [viewMode, setViewMode] = useState<ViewMode>('view')
   const [isWriting, setIsWriting] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [selectedText, setSelectedText] = useState('')
@@ -74,6 +77,21 @@ export function ScriptPreviewEditor({
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-bg2/50 flex-shrink-0">
         <code className="text-[11px] font-mono text-text2 flex-1 truncate">{filePath || '未命名脚本'}</code>
         <div className="flex items-center gap-1.5">
+          {/* View/Edit toggle */}
+          <button
+            aria-label="查看模式"
+            onClick={() => setViewMode(v => v === 'view' ? 'edit' : 'view')}
+            className={cn(
+              'text-[10px] font-semibold px-2 py-1 rounded border transition-colors',
+              viewMode === 'edit'
+                ? 'bg-yellow/15 text-yellow border-yellow/30'
+                : viewMode === 'view'
+                ? 'bg-accent/15 text-accent border-accent/30'
+                : 'text-text3 border-border hover:text-text'
+            )}
+          >
+            {viewMode === 'edit' ? '✏️ 编辑中' : '👁️ 预览'}
+          </button>
           {hasDiff && (
             <button
               aria-label="Diff 视图"
