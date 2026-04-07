@@ -390,10 +390,14 @@ export default function CronPage() {
   const [activeTab, setActiveTab] = useState('user')
   const [section, setSection] = useState<'jobs' | 'history'>('jobs')
   const [showAIPanel, setShowAIPanel] = useState(false)
-  const [aiPanelWidth, setAiPanelWidth] = useState(520)
+  // 默认面板宽度 = 可用区域 (去除侧边栏 220px) 的 2/3
+  const [aiPanelWidth, setAiPanelWidth] = useState(() => {
+    const available = window.innerWidth - 220
+    return Math.round(available * 2 / 3)
+  })
   const isDraggingRef = useRef(false)
   const dragStartXRef = useRef(0)
-  const dragStartWidthRef = useRef(520)
+  const dragStartWidthRef = useRef(0)
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     isDraggingRef.current = true
@@ -404,7 +408,8 @@ export default function CronPage() {
     const onMove = (ev: MouseEvent) => {
       if (!isDraggingRef.current) return
       const delta = dragStartXRef.current - ev.clientX
-      const newWidth = Math.max(360, Math.min(900, dragStartWidthRef.current + delta))
+      const maxWidth = window.innerWidth - 220 - 320 // 保留至少 320px 给主内容
+      const newWidth = Math.max(320, Math.min(maxWidth, dragStartWidthRef.current + delta))
       setAiPanelWidth(newWidth)
     }
     const onUp = () => {
