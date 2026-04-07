@@ -59,4 +59,19 @@ describe('themeStore', () => {
     const { result } = renderHook(() => useThemeStore())
     expect(result.current.theme).toBe('light')
   })
+
+  it('setTheme("light") sets data-theme attribute on <html>', async () => {
+    const { useThemeStore } = await import('@/stores/themeStore')
+    const { result } = renderHook(() => useThemeStore())
+    act(() => { result.current.setTheme('light') })
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+  })
+
+  it('setTheme("dark") removes data-theme attribute from <html>', async () => {
+    localStorage.setItem('serverhub-theme', 'light')
+    const { useThemeStore } = await import('@/stores/themeStore')
+    const { result } = renderHook(() => useThemeStore())
+    act(() => { result.current.setTheme('dark') })
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
+  })
 })

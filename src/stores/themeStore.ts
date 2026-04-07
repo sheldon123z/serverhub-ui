@@ -27,7 +27,11 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  theme: getInitialTheme(),
+  theme: (() => {
+    const t = getInitialTheme()
+    applyTheme(t)
+    return t
+  })(),
   setTheme: (theme) => {
     applyTheme(theme)
     set({ theme })
