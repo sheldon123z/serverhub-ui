@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import ChatWidget from './ChatWidget'
 import ErrorBoundary from './ErrorBoundary'
+import { useThemeStore } from '@/stores/themeStore'
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': '仪表盘',
@@ -36,6 +38,15 @@ const PAGE_TITLES: Record<string, string> = {
 export default function Layout() {
   const location = useLocation()
   const title = PAGE_TITLES[location.pathname] || 'ServerHub'
+  const { theme } = useThemeStore()
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
+  }, [theme])
 
   return (
     <div className="flex min-h-screen">
