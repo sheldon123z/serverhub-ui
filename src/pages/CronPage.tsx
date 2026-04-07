@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import client from '@/api/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -390,6 +390,33 @@ export default function CronPage() {
   const [activeTab, setActiveTab] = useState('user')
   const [section, setSection] = useState<'jobs' | 'history'>('jobs')
   const [showAIPanel, setShowAIPanel] = useState(false)
+  const [aiPanelWidth, setAiPanelWidth] = useState(520)
+  const isDraggingRef = useRef(false)
+  const dragStartXRef = useRef(0)
+  const dragStartWidthRef = useRef(520)
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    isDraggingRef.current = true
+    dragStartXRef.current = e.clientX
+    dragStartWidthRef.current = aiPanelWidth
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    const onMove = (ev: MouseEvent) => {
+      if (!isDraggingRef.current) return
+      const delta = dragStartXRef.current - ev.clientX
+      const newWidth = Math.max(360, Math.min(900, dragStartWidthRef.current + delta))
+      setAiPanelWidth(newWidth)
+    }
+    const onUp = () => {
+      isDraggingRef.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }, [aiPanelWidth])
 
   const backupMut = useMutation({
     mutationFn: (cronUser: string) => client.post('/api/cron/backup', null, { params: { cron_user: cronUser, server_id: serverId } }).then((r) => r.data),
@@ -478,9 +505,20 @@ export default function CronPage() {
         </div>
       )}
       </div>
-      {/* AI 助手面板 */}
+      {/* AI 助手面板（宽度可拖拽）*/}
       {showAIPanel && (
-        <div className="w-[460px] shrink-0 flex flex-col border-l border-border" style={{ height: 'calc(100vh - var(--spacing-header) - 2.5rem)' }}>
+        <div
+          className="shrink-0 flex flex-col relative"
+          style={{ width: aiPanelWidth, height: 'calc(100vh - var(--spacing-header) - 2.5rem)' }}
+        >
+          {/* 左边缘拖拽手柄 */}
+          <div
+            onMouseDown={handleDragStart}
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-accent/40 transition-colors z-10 group"
+            title="拖拽调整面板宽度"
+          >
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-border group-hover:bg-accent/60 rounded-full transition-colors" />
+          </div>
           <CronAgentPanel
             onClose={() => setShowAIPanel(false)}
             currentUsername={currentUsername}

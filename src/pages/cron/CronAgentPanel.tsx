@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { useLightweightChat } from '@/hooks/useLightweightChat'
 import { CronJobSpecCard } from './CronJobSpecCard'
 import { ScriptPreviewEditor } from './ScriptPreviewEditor'
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 
 /** 现有任务的最小类型（避免循环依赖 CronPage.tsx） */
 interface ExistingJob {
@@ -127,10 +128,11 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
         </button>
       </div>
 
-      {/* Main content: chat + script preview */}
-      <div className="flex flex-1 min-h-0">
-        {/* Chat area (left 52%) */}
-        <div className="flex flex-col w-[52%] border-r border-border min-h-0">
+      {/* Main content: chat + script preview (resizable) */}
+      <ResizablePanelGroup className="flex-1 min-h-0">
+        {/* Chat area */}
+        <ResizablePanel defaultSize={42} minSize={25}>
+        <div className="flex flex-col h-full border-r border-border">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {messages.length === 0 && (
@@ -209,9 +211,13 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
             </div>
           </div>
         </div>
+        </ResizablePanel>
 
-        {/* Script preview area (right 48%) */}
-        <div className="flex-1 min-h-0 min-w-0">
+        <ResizableHandle withHandle />
+
+        {/* Script preview area */}
+        <ResizablePanel defaultSize={58} minSize={30}>
+        <div className="flex-1 min-h-0 min-w-0 h-full">
           {scriptContent ? (
             <ScriptPreviewEditor
               content={scriptContent}
@@ -229,7 +235,8 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
             </div>
           )}
         </div>
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   )
 }
