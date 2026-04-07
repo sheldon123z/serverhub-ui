@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { useLightweightChat } from '@/hooks/useLightweightChat'
 import { CronJobSpecCard } from './CronJobSpecCard'
 import { ScriptPreviewEditor } from './ScriptPreviewEditor'
+import { ScriptFileTree } from './ScriptFileTree'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 
 /** 现有任务的最小类型（避免循环依赖 CronPage.tsx） */
@@ -22,31 +23,46 @@ interface CronAgentPanelProps {
 }
 
 function buildPageContext(username: string, jobs: ExistingJob[]): string {
-  const jobSummary = jobs.slice(0, 10).map(j =>
-    `  - ${j.schedule} | ${j.command}${j.comment ? ` # ${j.comment}` : ''}`
+  const jobList = jobs.slice(0, 15).map(j =>
+    `[${j.enabled ? '✓' : '✗'}] ${j.schedule}  ${j.command}${j.comment ? `  # ${j.comment}` : ''}`
   ).join('\n')
 
-  return `你是 ServerHub 服务器管理系统的定时任务助手。
-当前用户: ${username}
+  return `# Cron Task Assistant
 
-你的职责是帮助用户创建和修改 cron 定时任务。
-当需要创建任务时，必须输出以下格式的代码块（schedule 和 command 是必填项）：
+You are a specialized cron job assistant for a Linux server management system (ServerHub).
+
+## Your Role
+- Help users create, modify, and manage cron scheduled tasks
+- Generate shell scripts when needed
+- Explain cron expressions in plain Chinese
+
+## Rules
+1. When creating a new task, you MUST output a \`cron-job-spec\` code block in this exact format:
 
 \`\`\`cron-job-spec
 {
-  "schedule": "cron表达式",
-  "command": "执行命令或脚本路径",
-  "comment": "任务说明",
-  "script_content": "完整的 shell 脚本内容（如需生成脚本）",
-  "script_path": "脚本文件路径，使用 ~/scripts/ 前缀"
+  "schedule": "0 3 * * *",
+  "command": "~/scripts/example.sh",
+  "comment": "Brief task description in Chinese",
+  "script_content": "#!/bin/bash\\nset -euo pipefail\\n\\n# Script content here",
+  "script_path": "~/scripts/example.sh"
 }
 \`\`\`
 
-cron 表达式格式：分 时 日 月 周（如 "0 3 * * *" 表示每天凌晨3点）
-如果用户需要生成脚本文件，在 script_content 中提供完整脚本，script_path 使用 ~/scripts/<名称>.sh。
+2. Cron expression format: \`minute hour day month weekday\`
+3. Scripts MUST start with \`#!/bin/bash\` and \`set -euo pipefail\`
+4. Scripts should be saved to \`~/scripts/\` directory
+5. Always add logging to scripts (append to /tmp/ or ~/logs/)
+6. When modifying existing scripts, output the complete updated version
+7. Respond concisely in Chinese
 
-现有定时任务（${jobs.length} 个）：
-${jobSummary || '  （暂无任务）'}
+## Current Environment
+- User: ${username}
+- Existing tasks (${jobs.length}):
+${jobList || '(none)'}
+
+## Available Script Directory
+~/scripts/ — all generated scripts should be placed here
 `
 }
 
@@ -217,24 +233,38 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
 
         {/* Script preview area */}
         <ResizablePanel defaultSize={58} minSize={30}>
-        <div className="flex-1 min-h-0 min-w-0 h-full">
-          {scriptContent ? (
-            <ScriptPreviewEditor
-              content={scriptContent}
-              filePath={scriptPath}
-              originalContent={scriptOriginal}
-              onContentChange={setScriptContent}
-              onWriteToServer={handleWriteToServer}
-              onSendToAI={handleSendSelectionToAI}
+          <div className="flex h-full min-w-0">
+            {/* Mini file tree */}
+            <ScriptFileTree
+              currentFilePath={scriptPath}
+              onSelectFile={(path, content) => {
+                setScriptPath(path)
+                if (content) {
+                  setScriptOriginal(content)
+                  setScriptContent(content)
+                }
+              }}
             />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-text3 p-4">
-              <div className="text-3xl mb-3 opacity-40">📄</div>
-              <div className="text-[12px] text-center">AI 生成脚本后将在此预览</div>
-              <div className="text-[11px] mt-1 text-text3/60 text-center">可直接编辑，选中代码可发给 AI 修改</div>
+            {/* Script editor */}
+            <div className="flex-1 min-h-0 min-w-0">
+              {scriptContent ? (
+                <ScriptPreviewEditor
+                  content={scriptContent}
+                  filePath={scriptPath}
+                  originalContent={scriptOriginal}
+                  onContentChange={setScriptContent}
+                  onWriteToServer={handleWriteToServer}
+                  onSendToAI={handleSendSelectionToAI}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-text3 p-4">
+                  <div className="text-3xl mb-3 opacity-40">📄</div>
+                  <div className="text-[12px] text-center">AI 生成脚本后将在此预览</div>
+                  <div className="text-[11px] mt-1 text-text3/60 text-center">或从左侧目录选择已有脚本</div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

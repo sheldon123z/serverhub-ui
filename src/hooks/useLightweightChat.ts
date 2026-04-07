@@ -27,11 +27,24 @@ function generateUUID(): string {
   })
 }
 
+/** Extract text content from string or ContentBlock array (matches useSSEChat pattern) */
+function extractContent(raw: unknown): string {
+  if (typeof raw === 'string') return raw
+  if (Array.isArray(raw)) {
+    return raw
+      .filter((b: { type: string }) => b.type === 'text')
+      .map((b: { text: string }) => b.text)
+      .join('')
+  }
+  return ''
+}
+
 export function useLightweightChat({ pageContext }: UseLightweightChatOptions): UseLightweightChatReturn {
   const [messages, setMessages] = useState<LightChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const conversationId = useRef<string>(generateUUID())
+  const currentRunId = useRef<string | null>(null)
 
   const sendMessage = useCallback(async (text: string) => {
     abortRef.current?.abort()
@@ -90,25 +103,80 @@ export function useLightweightChat({ pageContext }: UseLightweightChatOptions): 
           if (!dataStr) continue
 
           try {
-            const data = JSON.parse(dataStr)
-            if (currentEvent === 'message' || currentEvent === 'message.final') {
-              let chunk = ''
-              if (typeof data.content === 'string') {
-                chunk = data.content
-              } else if (Array.isArray(data.content)) {
-                chunk = data.content
-                  .filter((b: { type: string }) => b.type === 'text')
-                  .map((b: { text: string }) => b.text)
-                  .join('')
+            const data = JSON.parse(dataStr) as Record<string, unknown>
+
+            switch (currentEvent) {
+              case 'run.started':
+                if (data.run_id) {
+                  currentRunId.current = data.run_id as string
+                }
+                break
+
+              case 'message':
+              case 'message.final': {
+                const chunk = extractContent(data.content)
+                if (chunk) {
+                  accContent = chunk
+                  setMessages(prev => prev.map(m =>
+                    m.id === assistantId ? { ...m, content: accContent } : m
+                  ))
+                }
+                break
               }
-              if (chunk) {
-                accContent = chunk
+
+              case 'tool.call':
+              case 'tool_call': {
+                const toolName = (data.tool as string) ?? (data.name as string) ?? '工具'
+                const indicator = `\n\n🔧 正在调用: ${toolName}...`
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantId
+                    ? { ...m, content: accContent + indicator }
+                    : m
+                ))
+                break
+              }
+
+              case 'tool.result':
+              case 'tool_result':
+                // Silently ignore — restore clean content without tool indicator
                 setMessages(prev => prev.map(m =>
                   m.id === assistantId ? { ...m, content: accContent } : m
                 ))
+                break
+
+              case 'run.completed':
+                if (data.run_id) {
+                  currentRunId.current = data.run_id as string
+                }
+                // Mark streaming done; finally block will finalize
+                break
+
+              case 'run.error':
+              case 'error': {
+                const errMsg = (data.error as string) ?? '未知错误'
+                accContent = `错误: ${errMsg}`
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantId ? { ...m, content: accContent } : m
+                ))
+                break
               }
+
+              case 'done':
+                if (data.conversation_id) {
+                  conversationId.current = data.conversation_id as string
+                }
+                if (data.run_id) {
+                  currentRunId.current = data.run_id as string
+                }
+                break
+
+              // Silently ignore all other event types:
+              // todo.update, task.update, approval.request,
+              // ui.render, ui.update, ui.remove, artifact.update
+              default:
+                break
             }
-          } catch { /* skip invalid chunks */ }
+          } catch { /* skip invalid JSON chunks */ }
         }
       }
     } catch (err) {
@@ -133,14 +201,25 @@ export function useLightweightChat({ pageContext }: UseLightweightChatOptions): 
     setMessages([])
     setIsStreaming(false)
     conversationId.current = generateUUID()
+    currentRunId.current = null
   }, [])
 
-  const cancelStreaming = useCallback(() => {
+  const cancelStreaming = useCallback(async () => {
+    const runId = currentRunId.current
     abortRef.current?.abort()
     setIsStreaming(false)
     setMessages(prev => prev.map(m =>
       m.isStreaming ? { ...m, isStreaming: false, content: m.content + ' [已取消]' } : m
     ))
+    // Best-effort server-side cancel
+    if (runId) {
+      try {
+        await fetch(`/api/agents/runs/${runId}/cancel`, {
+          method: 'POST',
+          credentials: 'include',
+        })
+      } catch { /* ignore cancel errors */ }
+    }
   }, [])
 
   return { messages, isStreaming, sendMessage, clearMessages, cancelStreaming }
