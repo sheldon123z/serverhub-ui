@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
 import { useServerStore } from '@/stores/serverStore'
+import { CronAgentPanel } from './cron/CronAgentPanel'
 
 /* ---------- types ---------- */
 
@@ -388,6 +389,7 @@ export default function CronPage() {
   const serverId = useServerStore((s) => s.selectedServerId)
   const [activeTab, setActiveTab] = useState('user')
   const [section, setSection] = useState<'jobs' | 'history'>('jobs')
+  const [showAIPanel, setShowAIPanel] = useState(false)
 
   const backupMut = useMutation({
     mutationFn: (cronUser: string) => client.post('/api/cron/backup', null, { params: { cron_user: cronUser, server_id: serverId } }).then((r) => r.data),
@@ -408,16 +410,31 @@ export default function CronPage() {
   const cronUser = activeTab === 'root' ? 'root' : ''
 
   return (
-    <div>
+    <div className={cn('flex gap-0', showAIPanel ? 'h-[calc(100vh-var(--spacing-header)-2.5rem)] overflow-hidden' : '')}>
+      {/* 主内容区 */}
+      <div className={cn('flex-1 min-w-0', showAIPanel ? 'overflow-y-auto pr-0' : '')}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">定时任务</h2>
-        <button
-          onClick={() => backupMut.mutate(cronUser || currentUsername)}
-          disabled={backupMut.isPending}
-          className="text-text3 text-sm hover:text-text border border-border rounded-md px-3 py-1.5 hover:border-accent transition-colors"
-        >
-          备份 Crontab
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAIPanel(v => !v)}
+            className={cn(
+              'text-sm px-3 py-1.5 rounded-md border transition-colors',
+              showAIPanel
+                ? 'bg-accent/15 text-accent border-accent/30'
+                : 'text-text3 border-border hover:text-text hover:border-accent/40'
+            )}
+          >
+            🤖 AI 助手
+          </button>
+          <button
+            onClick={() => backupMut.mutate(cronUser || currentUsername)}
+            disabled={backupMut.isPending}
+            className="text-text3 text-sm hover:text-text border border-border rounded-md px-3 py-1.5 hover:border-accent transition-colors"
+          >
+            备份 Crontab
+          </button>
+        </div>
       </div>
 
       <StatCards userJobs={userJobsData?.jobs ?? []} rootJobs={rootJobsData?.jobs ?? []} />
@@ -458,6 +475,20 @@ export default function CronPage() {
       ) : (
         <div className="glass rounded-lg p-4">
           <HistorySection cronUser={cronUser || currentUsername} />
+        </div>
+      )}
+      </div>
+      {/* AI 助手面板 */}
+      {showAIPanel && (
+        <div className="w-[460px] shrink-0 flex flex-col border-l border-border" style={{ height: 'calc(100vh - var(--spacing-header) - 2.5rem)' }}>
+          <CronAgentPanel
+            onClose={() => setShowAIPanel(false)}
+            currentUsername={currentUsername}
+            existingJobs={[
+              ...(userJobsData?.jobs ?? []),
+              ...(rootJobsData?.jobs ?? []),
+            ]}
+          />
         </div>
       )}
     </div>
