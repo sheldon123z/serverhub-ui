@@ -16,6 +16,28 @@ import type { MetricsData } from '@/hooks/useWebSocket'
 import { statusHex } from './utils'
 
 // ---------------------------------------------------------------------------
+// Shared theme hook
+// ---------------------------------------------------------------------------
+export function useChartTheme() {
+  const { theme } = useThemeStore()
+  return {
+    lineColor:      theme === 'light' ? '#007aff' : '#38bdf8',
+    areaColor:      theme === 'light' ? 'rgba(0,122,255,0.08)' : 'rgba(56,189,248,0.1)',
+    gridColor:      theme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
+    axisColor:      theme === 'light' ? 'rgba(60,60,67,0.35)' : '#62666d',
+    tooltipBg:      theme === 'light' ? 'rgba(255,255,255,0.92)' : '#191a1b',
+    tooltipBorder:  theme === 'light' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.1)',
+    tooltipText:    theme === 'light' ? '#1c1c1e' : '#f7f8f8',
+    titleColor:     theme === 'light' ? '#1c1c1e' : '#e2e8f0',
+    subtitleColor:  theme === 'light' ? 'rgba(60,60,67,0.45)' : '#64748b',
+    labelColor:     theme === 'light' ? 'rgba(60,60,67,0.5)' : '#94a3b8',
+    splitLineColor: theme === 'light' ? 'rgba(0,0,0,0.05)' : '#1e293b',
+    axisLineColor:  theme === 'light' ? 'rgba(0,0,0,0.08)' : '#334155',
+    otherItemColor: theme === 'light' ? 'rgba(60,60,67,0.3)' : '#64748b',
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Sparkline mini chart
 // ---------------------------------------------------------------------------
 export function Sparkline({ data, color }: { data: number[]; color: string }) {
@@ -73,9 +95,10 @@ export function DetailChart({
 }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor } = useChartTheme()
   const option = useMemo(() => ({
     grid: { top: 36, right: 20, bottom: 28, left: 50 },
-    title: { text: title, textStyle: { color: '#e2e8f0', fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
+    title: { text: title, textStyle: { color: titleColor, fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
     xAxis: {
       type: 'category' as const,
       data: labels,
@@ -108,7 +131,7 @@ export function DetailChart({
         ]),
       },
     }],
-  }), [data, labels, color, title, unit, max])
+  }), [data, labels, color, title, unit, max, titleColor])
 
   return (
     <ReactECharts
@@ -138,9 +161,10 @@ export function MultiLineChart({
 }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor } = useChartTheme()
   const option = useMemo(() => ({
     grid: { top: 48, right: 20, bottom: 28, left: 50 },
-    title: { text: title, textStyle: { color: '#e2e8f0', fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
+    title: { text: title, textStyle: { color: titleColor, fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
     legend: { top: 8, right: 12, textStyle: { fontSize: 10 } },
     xAxis: { type: 'category' as const, data: labels, axisLabel: { fontSize: 10 }, boundaryGap: false },
     yAxis: { type: 'value' as const, axisLabel: { formatter: `{value}${unit}`, fontSize: 10 }, min: 0, max: 100 },
@@ -153,7 +177,7 @@ export function MultiLineChart({
       symbol: 'none',
       lineStyle: { width: 1.5, color: s.color },
     })),
-  }), [series, labels, title, unit])
+  }), [series, labels, title, unit, titleColor])
 
   return (
     <ReactECharts
@@ -181,6 +205,7 @@ export function SystemTrendChart({
 }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor } = useChartTheme()
   const option = useMemo(() => {
     const timestamps = historyData.map((h) => {
       const d = new Date(h.timestamp)
@@ -193,7 +218,7 @@ export function SystemTrendChart({
 
     return {
       grid: { top: 48, right: 20, bottom: 28, left: 50 },
-      title: { text: '系统资源趋势', textStyle: { color: '#e2e8f0', fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
+      title: { text: '系统资源趋势', textStyle: { color: titleColor, fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
       legend: { top: 8, right: 12, textStyle: { fontSize: 10 } },
       tooltip: { trigger: 'axis' as const },
       xAxis: { type: 'category' as const, data: timestamps, axisLabel: { fontSize: 10 }, boundaryGap: false },
@@ -205,7 +230,7 @@ export function SystemTrendChart({
         { name: 'Swap', type: 'line' as const, data: swapData, smooth: true, symbol: 'none', lineStyle: { width: 1.5, color: '#fbbf24' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#fbbf2420' }, { offset: 1, color: '#fbbf2405' }]) } },
       ],
     }
-  }, [historyData])
+  }, [historyData, titleColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3 relative">
@@ -236,6 +261,7 @@ export function SystemTrendChart({
 export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor, subtitleColor, labelColor } = useChartTheme()
   const option = useMemo(() => {
     const critical = summary?.critical ?? 0
     const warning = summary?.warning ?? 0
@@ -243,7 +269,7 @@ export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
     const total = critical + warning + info
 
     return {
-      title: { text: '告警分布', subtext: total > 0 ? `共 ${total} 条` : '无告警', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, subtextStyle: { color: '#64748b', fontSize: 10 }, left: 'center', top: 8 },
+      title: { text: '告警分布', subtext: total > 0 ? `共 ${total} 条` : '无告警', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, subtextStyle: { color: subtitleColor, fontSize: 10 }, left: 'center', top: 8 },
       tooltip: { trigger: 'item' as const },
       series: [{
         type: 'pie' as const,
@@ -254,11 +280,11 @@ export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
           { value: warning, name: '警告', itemStyle: { color: '#fbbf24' } },
           { value: info, name: '信息', itemStyle: { color: '#38bdf8' } },
         ].filter((d) => d.value > 0),
-        label: { show: true, color: '#94a3b8', fontSize: 10 },
+        label: { show: true, color: labelColor, fontSize: 10 },
         emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' } },
       }],
     }
-  }, [summary])
+  }, [summary, titleColor, subtitleColor, labelColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
@@ -273,6 +299,7 @@ export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
 export function DockerHealthDonut({ containers }: { containers: Array<{ state: string }> | null }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor, subtitleColor, labelColor, otherItemColor } = useChartTheme()
   const option = useMemo(() => {
     const items = ensureArray<{ state: string }>(containers)
     const running = items.filter((c) => c.state === 'running').length
@@ -282,7 +309,7 @@ export function DockerHealthDonut({ containers }: { containers: Array<{ state: s
     const total = items.length
 
     return {
-      title: { text: '容器健康度', subtext: total > 0 ? `共 ${total} 个` : '无容器', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, subtextStyle: { color: '#64748b', fontSize: 10 }, left: 'center', top: 8 },
+      title: { text: '容器健康度', subtext: total > 0 ? `共 ${total} 个` : '无容器', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, subtextStyle: { color: subtitleColor, fontSize: 10 }, left: 'center', top: 8 },
       tooltip: { trigger: 'item' as const },
       series: [{
         type: 'pie' as const,
@@ -292,13 +319,13 @@ export function DockerHealthDonut({ containers }: { containers: Array<{ state: s
           { value: running, name: '运行中', itemStyle: { color: '#4ade80' } },
           { value: stopped, name: '已停止', itemStyle: { color: '#f87171' } },
           { value: restarting, name: '重启中', itemStyle: { color: '#fbbf24' } },
-          ...(other > 0 ? [{ value: other, name: '其他', itemStyle: { color: '#64748b' } }] : []),
+          ...(other > 0 ? [{ value: other, name: '其他', itemStyle: { color: otherItemColor } }] : []),
         ].filter((d) => d.value > 0),
-        label: { show: true, color: '#94a3b8', fontSize: 10 },
+        label: { show: true, color: labelColor, fontSize: 10 },
         emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' } },
       }],
     }
-  }, [containers])
+  }, [containers, titleColor, subtitleColor, labelColor, otherItemColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
@@ -313,6 +340,7 @@ export function DockerHealthDonut({ containers }: { containers: Array<{ state: s
 export function NetworkTrendChart({ history }: { history: MetricsData[] }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor, subtitleColor } = useChartTheme()
   const option = useMemo(() => {
     const recvRates: number[] = []
     const sentRates: number[] = []
@@ -328,17 +356,17 @@ export function NetworkTrendChart({ history }: { history: MetricsData[] }) {
 
     return {
       grid: { top: 40, right: 12, bottom: 24, left: 48 },
-      title: { text: '网络吞吐趋势', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
+      title: { text: '网络吞吐趋势', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
       legend: { top: 8, right: 8, textStyle: { fontSize: 10 } },
       tooltip: { trigger: 'axis' as const },
       xAxis: { type: 'category' as const, data: labels, show: false },
-      yAxis: { type: 'value' as const, axisLabel: { formatter: '{value}', fontSize: 9 }, name: 'KB/s', nameTextStyle: { fontSize: 9, color: '#64748b' } },
+      yAxis: { type: 'value' as const, axisLabel: { formatter: '{value}', fontSize: 9 }, name: 'KB/s', nameTextStyle: { fontSize: 9, color: subtitleColor } },
       series: [
         { name: '接收', type: 'line' as const, data: recvRates, smooth: true, symbol: 'none', lineStyle: { width: 1.5, color: '#38bdf8' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#38bdf820' }, { offset: 1, color: '#38bdf805' }]) } },
         { name: '发送', type: 'line' as const, data: sentRates, smooth: true, symbol: 'none', lineStyle: { width: 1.5, color: '#4ade80' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#4ade8020' }, { offset: 1, color: '#4ade8005' }]) } },
       ],
     }
-  }, [history])
+  }, [history, titleColor, subtitleColor])
 
   if (history.length < 2) {
     return (
@@ -361,6 +389,7 @@ export function NetworkTrendChart({ history }: { history: MetricsData[] }) {
 export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor, labelColor } = useChartTheme()
   const option = useMemo(() => {
     const partitions = (metrics.disk?.partitions ?? []).slice(0, 8)
     const names = partitions.map((p) => p.mountpoint.length > 12 ? '...' + p.mountpoint.slice(-10) : p.mountpoint)
@@ -368,7 +397,7 @@ export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
 
     return {
       grid: { top: 36, right: 16, bottom: 8, left: 80 },
-      title: { text: '磁盘与挂载点压力', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
+      title: { text: '磁盘与挂载点压力', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
       tooltip: { trigger: 'axis' as const, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}: ${params[0].value}%` },
       xAxis: { type: 'value' as const, max: 100, axisLabel: { formatter: '{value}%', fontSize: 9 } },
       yAxis: { type: 'category' as const, data: names, axisLabel: { fontSize: 9 }, inverse: true },
@@ -379,10 +408,10 @@ export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
           itemStyle: { color: statusHex(v), borderRadius: [0, 3, 3, 0] },
         })),
         barWidth: 14,
-        label: { show: true, position: 'right' as const, formatter: '{c}%', fontSize: 9, color: '#94a3b8' },
+        label: { show: true, position: 'right' as const, formatter: '{c}%', fontSize: 9, color: labelColor },
       }],
     }
-  }, [metrics])
+  }, [metrics, titleColor, labelColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
@@ -397,13 +426,14 @@ export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
 export function TopProcessChart({ processes }: { processes: Array<{ name: string; cpu_percent: number; mem_rss_mb: number }> | null }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor } = useChartTheme()
   const option = useMemo(() => {
     const top5 = ensureArray<{ name: string; cpu_percent: number; mem_rss_mb: number }>(processes).slice(0, 5)
     const names = top5.map((p) => p.name.length > 12 ? p.name.slice(0, 12) + '...' : p.name)
 
     return {
       grid: { top: 36, right: 16, bottom: 24, left: 80 },
-      title: { text: 'Top 进程资源', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
+      title: { text: 'Top 进程资源', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
       tooltip: { trigger: 'axis' as const },
       legend: { top: 8, right: 8, textStyle: { fontSize: 10 } },
       xAxis: { type: 'value' as const, axisLabel: { fontSize: 9 } },
@@ -413,7 +443,7 @@ export function TopProcessChart({ processes }: { processes: Array<{ name: string
         { name: 'Mem MB', type: 'bar' as const, data: top5.map((p) => p.mem_rss_mb), barWidth: 8, itemStyle: { color: '#4ade80', borderRadius: [0, 3, 3, 0] } },
       ],
     }
-  }, [processes])
+  }, [processes, titleColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
@@ -428,6 +458,7 @@ export function TopProcessChart({ processes }: { processes: Array<{ name: string
 export function ContainerGroupChart({ containers }: { containers: Array<{ name: string; state: string }> | null }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor } = useChartTheme()
   const option = useMemo(() => {
     // Group by compose project prefix (name before the first hyphen-number pattern)
     const groups: Record<string, { running: number; stopped: number }> = {}
@@ -445,7 +476,7 @@ export function ContainerGroupChart({ containers }: { containers: Array<{ name: 
 
     return {
       grid: { top: 36, right: 16, bottom: 24, left: 90 },
-      title: { text: '容器组资源', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
+      title: { text: '容器组资源', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, left: 8, top: 8 },
       tooltip: { trigger: 'axis' as const },
       legend: { top: 8, right: 8, textStyle: { fontSize: 10 } },
       xAxis: { type: 'value' as const, axisLabel: { fontSize: 9 } },
@@ -455,7 +486,7 @@ export function ContainerGroupChart({ containers }: { containers: Array<{ name: 
         { name: '停止', type: 'bar' as const, stack: 'total', data: stacks.map(([, v]) => v.stopped), barWidth: 14, itemStyle: { color: '#f87171', borderRadius: [0, 3, 3, 0] } },
       ],
     }
-  }, [containers])
+  }, [containers, titleColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
@@ -470,6 +501,7 @@ export function ContainerGroupChart({ containers }: { containers: Array<{ name: 
 export function ResourceRadar({ metrics }: { metrics: MetricsData }) {
   const { theme } = useThemeStore()
   const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const { titleColor, labelColor, splitLineColor, axisLineColor } = useChartTheme()
   const option = useMemo(() => {
     const cpu = metrics.cpu?.overall_percent ?? 0
     const mem = metrics.memory?.percent ?? 0
@@ -479,7 +511,7 @@ export function ResourceRadar({ metrics }: { metrics: MetricsData }) {
     const gpu = metrics.gpu?.utilization ?? 0
 
     return {
-      title: { text: '资源配比', textStyle: { color: '#e2e8f0', fontSize: 13, fontWeight: 500 }, left: 'center', top: 8 },
+      title: { text: '资源配比', textStyle: { color: titleColor, fontSize: 13, fontWeight: 500 }, left: 'center', top: 8 },
       tooltip: { trigger: 'item' as const },
       radar: {
         indicator: [
@@ -491,10 +523,10 @@ export function ResourceRadar({ metrics }: { metrics: MetricsData }) {
         ],
         center: ['50%', '58%'],
         radius: '55%',
-        axisName: { color: '#94a3b8', fontSize: 10 },
+        axisName: { color: labelColor, fontSize: 10 },
         splitArea: { areaStyle: { color: ['transparent'] } },
-        splitLine: { lineStyle: { color: '#1e293b' } },
-        axisLine: { lineStyle: { color: '#334155' } },
+        splitLine: { lineStyle: { color: splitLineColor } },
+        axisLine: { lineStyle: { color: axisLineColor } },
       },
       series: [{
         type: 'radar' as const,
@@ -507,7 +539,7 @@ export function ResourceRadar({ metrics }: { metrics: MetricsData }) {
         }],
       }],
     }
-  }, [metrics])
+  }, [metrics, titleColor, labelColor, splitLineColor, axisLineColor])
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
