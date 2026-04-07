@@ -118,7 +118,7 @@ function ProviderCard({ provider }: { provider: ProviderInfo }) {
   })
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div className="glass rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="font-medium text-text">{provider.display_name}</span>
@@ -170,7 +170,7 @@ function ProviderCard({ provider }: { provider: ProviderInfo }) {
                 setShowApiKeyForm(false)
                 setApiKeyInput('')
               }}
-              className="px-3 py-1.5 rounded-md text-xs border border-border text-text2 hover:bg-bg2"
+              className="px-3 py-1.5 rounded-md text-xs border border-border text-text2 hover:bg-card"
             >
               取消
             </button>
@@ -275,7 +275,7 @@ export default function SettingsPage() {
       {/* AI Model Config Section */}
       <section className="mb-8">
         <h3 className="text-sm font-medium text-text2 uppercase tracking-wider mb-4">AI 模型配置</h3>
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <div className="space-y-4">
             <ModelSelect
               label="默认对话模型"

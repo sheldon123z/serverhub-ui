@@ -87,7 +87,7 @@ export default function TeamsPage() {
                   <div
                     key={team.id}
                     onClick={() => setSelectedTeamId(team.id)}
-                    className="bg-card border border-border rounded-lg p-4 cursor-pointer hover:border-accent/50 transition-colors"
+                    className="glass rounded-lg p-4 cursor-pointer hover:border-accent/50 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-text">{team.name}</span>

@@ -80,7 +80,7 @@ function StatCards({ userJobs, rootJobs }: { userJobs: CronJob[]; rootJobs: Cron
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
       {cards.map((c) => (
-        <div key={c.label} className="bg-card border border-border rounded-lg p-4">
+        <div key={c.label} className="glass rounded-lg p-4">
           <div className="text-text3 text-xs uppercase mb-1">{c.label}</div>
           <div className={cn('text-2xl font-bold', c.color)}>{c.value}</div>
         </div>
@@ -104,11 +104,11 @@ function SchedulePresetsDropdown({ onSelect }: { onSelect: (v: string) => void }
         ...
       </button>
       {open && (
-        <div className="absolute left-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 py-1 w-44">
+        <div className="absolute left-0 mt-1 glass rounded-lg shadow-lg z-10 py-1 w-44">
           {SCHEDULE_PRESETS.map((p) => (
             <button
               key={p.value}
-              className="w-full text-left px-3 py-2 text-sm text-text hover:bg-bg2/50 flex justify-between items-center"
+              className="w-full text-left px-3 py-2 text-sm text-text hover:bg-card/50 flex justify-between items-center"
               onClick={() => {
                 onSelect(p.value)
                 setOpen(false)
@@ -151,7 +151,7 @@ function ExpressionValidator() {
   })
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mb-4">
+    <div className="glass rounded-lg p-4 mb-4">
       <h3 className="text-sm font-medium mb-3">Cron 表达式验证</h3>
       <div className="flex gap-2 items-start">
         <input
@@ -220,7 +220,7 @@ function AddJobForm({ cronUser }: { cronUser: string }) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mb-4">
+    <div className="glass rounded-lg p-4 mb-4">
       <h3 className="text-sm font-medium mb-3">新增定时任务</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <div className="flex gap-1 items-center">
@@ -451,12 +451,12 @@ export default function CronPage() {
       {section === 'jobs' ? (
         <>
           <AddJobForm cronUser={cronUser || currentUsername} />
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="glass rounded-lg p-4">
             <JobTable cronUser={cronUser || currentUsername} />
           </div>
         </>
       ) : (
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <HistorySection cronUser={cronUser || currentUsername} />
         </div>
       )}

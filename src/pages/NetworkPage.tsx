@@ -125,7 +125,7 @@ export default function NetworkPage() {
 
       {/* 代理状态 */}
       {proxyData && (
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <h3 className="text-sm font-medium text-text2 mb-3">代理配置</h3>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function NetworkPage() {
       )}
 
       {/* 连接统计 */}
-      <div className="bg-card border border-border rounded-lg p-4">
+      <div className="glass rounded-lg p-4">
         <h3 className="text-sm font-medium text-text2 mb-3">连接统计</h3>
         {connLoading ? (
           <p className="text-text3 text-sm">加载中...</p>
@@ -169,7 +169,7 @@ export default function NetworkPage() {
       </div>
 
       {/* 监听端口 */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <div className="px-4 py-3 border-b border-border">
           <h3 className="text-sm font-medium text-text2">
             监听端口
@@ -203,7 +203,7 @@ export default function NetworkPage() {
               </tr>
             ) : (
               ports.map((p, i) => (
-                <tr key={i} className="border-b border-border hover:bg-bg2/50">
+                <tr key={i} className="border-b border-border hover:bg-card">
                   <td className="px-4 py-2.5 text-accent font-mono font-medium">{p.port}</td>
                   <td className="px-4 py-2.5 text-text2 uppercase text-xs">{p.protocol}</td>
                   <td className="px-4 py-2.5 text-text">{p.process || '-'}</td>

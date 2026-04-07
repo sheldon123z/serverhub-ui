@@ -137,7 +137,7 @@ export default function PanelUsersPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-4 space-y-3">
+        <form onSubmit={handleSubmit} className="glass rounded-lg p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             {!editingId && (
               <>
@@ -192,7 +192,7 @@ export default function PanelUsersPage() {
         </form>
       )}
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-text3 text-left">
@@ -219,7 +219,7 @@ export default function PanelUsersPage() {
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user.id} className="border-b border-border hover:bg-bg2/50">
+                <tr key={user.id} className="border-b border-border hover:bg-card/50">
                   <td className="px-4 py-2.5 text-text3">{user.id}</td>
                   <td className="px-4 py-2.5 text-text font-medium">{user.username}</td>
                   <td className="px-4 py-2.5 text-text2">{user.display_name || '-'}</td>
@@ -239,7 +239,7 @@ export default function PanelUsersPage() {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => startEdit(user)}
-                        className="px-2 py-1 rounded text-xs border border-border text-text2 hover:bg-bg2"
+                        className="px-2 py-1 rounded text-xs border border-border text-text2 hover:bg-card"
                       >
                         编辑
                       </button>

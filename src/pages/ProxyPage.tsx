@@ -215,7 +215,7 @@ function ClashExtension({ instanceId }: { instanceId: string }) {
             <div key={g.name} className="bg-bg border border-border rounded-lg overflow-hidden">
               {/* Group header */}
               <div
-                className="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-bg2/50 transition-colors"
+                className="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-card/50 transition-colors"
                 onClick={() => setExpandedGroup(expandedGroup === g.name ? null : g.name)}
               >
                 <div className="flex items-center gap-3">
@@ -387,7 +387,7 @@ export default function ProxyPage() {
             key={inst.id}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
-              selectedId === inst.id ? 'bg-card border border-border' : 'hover:bg-bg2',
+              selectedId === inst.id ? 'bg-card border border-border' : 'hover:bg-card',
             )}
             onClick={() => setSelectedId(inst.id)}
           >
@@ -406,7 +406,7 @@ export default function ProxyPage() {
       {selected ? (
         <div className="flex-1 min-w-0 space-y-5">
           {/* Status card */}
-          <div className="bg-card border border-border rounded-lg p-5">
+          <div className="glass rounded-lg p-5">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-text">
@@ -468,7 +468,7 @@ export default function ProxyPage() {
           </div>
 
           {/* Config profiles */}
-          <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+          <div className="glass rounded-lg p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs uppercase text-text3 font-medium">配置文件</h4>
               <button
@@ -542,7 +542,7 @@ export default function ProxyPage() {
 
           {/* Clash extension */}
           {selected.plugin === 'clash' && (
-            <div className="bg-card border border-border rounded-lg p-5">
+            <div className="glass rounded-lg p-5">
               <ClashExtension instanceId={selected.id} />
             </div>
           )}

@@ -94,7 +94,7 @@ export default function AuditPage() {
         />
       </div>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-text3 text-left">
@@ -121,7 +121,7 @@ export default function AuditPage() {
               </tr>
             ) : (
               items.map((item, index) => (
-                <tr key={`${item.timestamp}-${item.username}-${index}`} className="border-b border-border hover:bg-bg2/50">
+                <tr key={`${item.timestamp}-${item.username}-${index}`} className="border-b border-border hover:bg-card">
                   <td className="px-4 py-2.5 text-text3 whitespace-nowrap">
                     {formatDate(item.timestamp)}
                   </td>
@@ -154,14 +154,14 @@ export default function AuditPage() {
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-bg2 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-card disabled:opacity-40 disabled:cursor-not-allowed"
             >
               上一页
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-bg2 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-card disabled:opacity-40 disabled:cursor-not-allowed"
             >
               下一页
             </button>

@@ -225,19 +225,19 @@ function StatSummaryCards() {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-      <div className="bg-card border border-border rounded-lg px-4 py-3">
+      <div className="glass rounded-lg px-4 py-3">
         <div className="text-[10px] text-text3 uppercase tracking-wider">用户总数</div>
         <div className="text-xl font-bold text-text mt-1">{users.length}</div>
       </div>
-      <div className="bg-card border border-border rounded-lg px-4 py-3">
+      <div className="glass rounded-lg px-4 py-3">
         <div className="text-[10px] text-text3 uppercase tracking-wider">活跃会话</div>
         <div className="text-xl font-bold text-accent mt-1">{sessions.length}</div>
       </div>
-      <div className="bg-card border border-border rounded-lg px-4 py-3">
+      <div className="glass rounded-lg px-4 py-3">
         <div className="text-[10px] text-text3 uppercase tracking-wider">超配额用户</div>
         <div className={cn('text-xl font-bold mt-1', overQuota > 0 ? 'text-red' : 'text-green')}>{overQuota}</div>
       </div>
-      <div className="bg-card border border-border rounded-lg px-4 py-3">
+      <div className="glass rounded-lg px-4 py-3">
         <div className="text-[10px] text-text3 uppercase tracking-wider">总内存占用</div>
         <div className="text-xl font-bold text-text mt-1">{totalMem.toFixed(1)} GB</div>
       </div>
@@ -307,7 +307,7 @@ function UsageBar({ percent, label }: { percent: number; label: string }) {
  */
 function UserCard({ user, onExpand }: { user: UserStat; onExpand: () => void }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-4 cursor-pointer hover:border-accent/50 transition-colors" onClick={onExpand}>
+    <div className="glass rounded-lg p-4 cursor-pointer hover:border-accent/50 transition-colors" onClick={onExpand}>
       <div className="flex items-center justify-between mb-3">
         <span className="font-medium text-text">{user.name}</span>
         <span className="text-text3 text-xs">UID {user.uid}</span>
@@ -450,7 +450,7 @@ function ResourceMonitorTab() {
         ))}
       </div>
 
-      <div className="bg-card border border-border rounded-lg p-4">
+      <div className="glass rounded-lg p-4">
         <h3 className="text-sm font-medium mb-3">活跃会话 ({sessions.length})</h3>
         {sessions.length === 0 ? (
           <p className="text-text3 text-sm">无活跃会话</p>
@@ -511,7 +511,7 @@ function CreateUserForm({ onDone }: { onDone: () => void }) {
   })
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 mb-4">
+    <div className="glass rounded-lg p-4 mb-4">
       <h3 className="text-sm font-medium mb-3">创建用户</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="用户名" className="bg-bg border border-border rounded-md px-3 py-2 text-sm text-text focus:border-accent focus:outline-none" />
@@ -646,7 +646,7 @@ function UserManagementTab() {
 
       {/* Password reset modal */}
       {pwUser && (
-        <div className="bg-card border border-border rounded-lg p-4 mb-4">
+        <div className="glass rounded-lg p-4 mb-4">
           <h3 className="text-sm font-medium mb-2">重置 {pwUser} 的密码</h3>
           <div className="flex gap-2">
             <input value={newPw} onChange={(e) => setNewPw(e.target.value)} type="password" placeholder="新密码" className="bg-bg border border-border rounded-md px-3 py-2 text-sm text-text focus:border-accent focus:outline-none flex-1" />
@@ -656,7 +656,7 @@ function UserManagementTab() {
         </div>
       )}
 
-      <div className="bg-card border border-border rounded-lg p-4">
+      <div className="glass rounded-lg p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-text3">{users.length} 个用户</span>
         </div>
@@ -723,7 +723,7 @@ function UserManagementTab() {
 
       {/* Login history panel */}
       {selectedUser && (
-        <div className="bg-card border border-border rounded-lg p-4 mt-4">
+        <div className="glass rounded-lg p-4 mt-4">
           <h3 className="text-sm font-medium mb-2">{selectedUser} 的登录历史</h3>
           <LoginHistory username={selectedUser} />
         </div>
@@ -821,7 +821,7 @@ function QuotaManagementTab() {
   return (
     <>
       {/* Quotas table */}
-      <div className="bg-card border border-border rounded-lg p-4 mb-4">
+      <div className="glass rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium">配额规则</h3>
           <button onClick={() => setShowAdd(true)} className="bg-accent text-[#0f172a] px-3 py-1 rounded-md text-xs font-medium hover:opacity-90">+ 添加</button>
@@ -890,7 +890,7 @@ function QuotaManagementTab() {
 
       {/* Enforcement config */}
       {enforcement && (
-        <div className="bg-card border border-border rounded-lg p-4 mb-4">
+        <div className="glass rounded-lg p-4 mb-4">
           <h3 className="text-sm font-medium mb-3">超配额处置策略</h3>
           <div className="space-y-2">
             {[
@@ -914,7 +914,7 @@ function QuotaManagementTab() {
       )}
 
       {/* Violations history */}
-      <div className="bg-card border border-border rounded-lg p-4">
+      <div className="glass rounded-lg p-4">
         <h3 className="text-sm font-medium mb-3">违规记录 ({violationList.length})</h3>
         {violationList.length === 0 ? (
           <p className="text-text3 text-sm">暂无记录</p>

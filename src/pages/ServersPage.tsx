@@ -406,7 +406,7 @@ export default function ServersPage() {
 
 function StatCard({ label, value, icon, color }: { label: string; value: number; icon: string; color: string }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div className="glass rounded-lg p-4">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs text-text3">{label}</div>
@@ -517,7 +517,7 @@ function ServerDetail({
           <button
             onClick={handleRotateToken}
             disabled={rotating}
-            className="bg-bg2 text-text2 px-3 py-1.5 rounded-md text-sm hover:text-text hover:bg-bg2/80 disabled:opacity-50"
+            className="bg-bg2 text-text2 px-3 py-1.5 rounded-md text-sm hover:text-text hover:bg-card/80 disabled:opacity-50"
           >
             {rotating ? '轮换中...' : '轮换 Token'}
           </button>
@@ -533,7 +533,7 @@ function ServerDetail({
           )}
           <button
             onClick={onEdit}
-            className="bg-bg2 text-text2 px-3 py-1.5 rounded-md text-sm hover:text-text hover:bg-bg2/80"
+            className="bg-bg2 text-text2 px-3 py-1.5 rounded-md text-sm hover:text-text hover:bg-card/80"
           >
             编辑
           </button>
@@ -649,7 +649,7 @@ function ServerDetail({
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-3">
+    <div className="glass rounded-lg p-3">
       <div className="text-[10px] text-text3 uppercase tracking-wider">{label}</div>
       <div className="text-sm text-text mt-1 font-medium truncate" title={value}>{value}</div>
     </div>

@@ -587,7 +587,7 @@ function ExecutionHistory({ playbookId }: { playbookId?: string }) {
         </thead>
         <tbody>
           {executions.map((exec) => (
-            <tr key={exec.id} className="border-b border-border/50 hover:bg-bg2/50">
+            <tr key={exec.id} className="border-b border-border/50 hover:bg-card/50">
               <td className="py-1.5">{formatDate(exec.started_at)}</td>
               <td className="py-1.5">
                 <span className={cn('px-2 py-0.5 rounded text-[10px] font-medium', STATUS_COLORS[exec.status] ?? '')}>
@@ -688,7 +688,7 @@ function CredentialsTab() {
       </div>
 
       {showAdd && (
-        <div className="bg-card border border-border rounded-lg p-4 mb-4">
+        <div className="glass rounded-lg p-4 mb-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-text2 mb-1 block">名称</label>

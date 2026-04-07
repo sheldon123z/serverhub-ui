@@ -123,7 +123,7 @@ function TopologyDiagram({ serverId }: { serverId: string }) {
   if (!data?.mermaid) return <p className="text-text3 text-sm py-8 text-center">暂无拓扑数据</p>
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 overflow-auto">
+    <div className="glass rounded-lg p-4 overflow-auto">
       <div ref={containerRef} className="flex justify-center" />
     </div>
   )
@@ -242,12 +242,12 @@ export default function AssetsPage() {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {typeEntries.map(([type, count]) => (
-            <div key={type} className="bg-card border border-border rounded-lg p-4">
+            <div key={type} className="glass rounded-lg p-4">
               <div className="text-text3 text-xs uppercase mb-1">{type}</div>
               <div className="text-2xl font-bold text-text">{count}</div>
             </div>
           ))}
-          <div className="bg-card border border-border rounded-lg p-4">
+          <div className="glass rounded-lg p-4">
             <div className="text-text3 text-xs uppercase mb-1">总计</div>
             <div className="text-2xl font-bold text-accent">{summary.total}</div>
           </div>
@@ -259,7 +259,7 @@ export default function AssetsPage() {
 
       {/* Add form */}
       {showAdd && (
-        <div className="bg-card border border-border rounded-lg p-4">
+        <div className="glass rounded-lg p-4">
           <h3 className="text-sm font-medium text-text mb-3">手动添加资产</h3>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <input
@@ -331,7 +331,7 @@ export default function AssetsPage() {
       {isLoading ? (
         <div className="text-text3 text-sm py-8 text-center">加载中...</div>
       ) : (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
@@ -347,7 +347,7 @@ export default function AssetsPage() {
             </thead>
             <tbody>
               {assets.map((a) => (
-                <tr key={a.id} className="border-b border-border hover:bg-bg2/50 transition-colors">
+                <tr key={a.id} className="border-b border-border hover:bg-card/50 transition-colors">
                   <td className="px-4 py-3 text-text font-medium">{a.name}</td>
                   <td className="px-4 py-3">
                     <span className={cn('px-2 py-0.5 rounded text-xs font-medium', typeBadge(a.type))}>

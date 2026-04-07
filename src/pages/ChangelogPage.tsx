@@ -477,7 +477,7 @@ export default function ChangelogPage() {
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Time range */}
-            <div className="flex gap-1 bg-card border border-border rounded-lg p-0.5">
+            <div className="flex gap-1 glass rounded-lg p-0.5">
               {TIME_RANGES.map((r) => (
                 <button
                   key={r.days}
@@ -559,7 +559,7 @@ export default function ChangelogPage() {
                     </div>
 
                     {/* Card */}
-                    <div className="flex-1 bg-card border border-border rounded-lg p-3.5 hover:border-border/80 transition-colors min-w-0">
+                    <div className="flex-1 glass rounded-lg p-3.5 hover:border-border/80 transition-colors min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <EventTypeIcon type={event.event_type} />

@@ -103,7 +103,7 @@ function SendNotificationTab() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 max-w-2xl">
+    <div className="glass rounded-lg p-4 max-w-2xl">
       <div className="space-y-4">
         <div>
           <label className="text-text3 text-xs uppercase block mb-1">标题</label>
@@ -266,7 +266,7 @@ function ChannelsTab() {
           + 添加渠道
         </button>
       ) : (
-        <div className="bg-card border border-border rounded-lg p-4 mb-4">
+        <div className="glass rounded-lg p-4 mb-4">
           <h3 className="text-sm font-medium mb-3">新增通知渠道</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -310,7 +310,7 @@ function ChannelsTab() {
           const typeName = types.find((t) => t.id === ch.channel_type)?.name ?? ch.channel_type
 
           return (
-            <div key={ch.id} className="bg-card border border-border rounded-lg p-4">
+            <div key={ch.id} className="glass rounded-lg p-4">
               {isEditing ? (
                 <div className="space-y-3">
                   <input
@@ -384,7 +384,7 @@ function HistoryTab() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div className="glass rounded-lg p-4">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border">

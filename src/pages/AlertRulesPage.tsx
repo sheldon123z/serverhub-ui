@@ -256,7 +256,7 @@ export default function AlertRulesPage() {
       </div>
 
       {/* Rules Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-bg text-text3 text-xs">
