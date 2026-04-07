@@ -31,6 +31,31 @@ echarts.registerTheme(THEME_NAME, {
   },
 })
 
+export const LIGHT_THEME_NAME = 'serverhub-light'
+
+echarts.registerTheme(LIGHT_THEME_NAME, {
+  backgroundColor: 'transparent',
+  color: ['#007aff', '#34c759', '#ff9500', '#ff3b30', '#af52de', '#ff6b00'],
+  tooltip: {
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderColor: 'rgba(255,255,255,0.95)',
+    textStyle: { color: '#1c1c1e', fontSize: 12 },
+  },
+  legend: { textStyle: { color: 'rgba(60,60,67,0.55)' } },
+  categoryAxis: {
+    axisLine: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
+    axisTick: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
+    axisLabel: { color: 'rgba(60,60,67,0.38)' },
+    splitLine: { lineStyle: { color: 'rgba(0,0,0,0.05)' } },
+  },
+  valueAxis: {
+    axisLine: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
+    axisTick: { lineStyle: { color: 'rgba(0,0,0,0.08)' } },
+    axisLabel: { color: 'rgba(60,60,67,0.38)' },
+    splitLine: { lineStyle: { color: 'rgba(0,0,0,0.05)' } },
+  },
+})
+
 export const CARDS: CardConfig[] = [
   { id: 'host', label: '主机状态', icon: Monitor },
   { id: 'cpu', label: 'CPU', icon: Cpu },

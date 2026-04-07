@@ -15,7 +15,7 @@ import type { AlertSummary } from './types'
 // ---------------------------------------------------------------------------
 export function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-bg2 border border-border rounded-lg px-3 py-2">
+    <div className="glass rounded-lg px-3 py-2">
       <div className="text-[10px] text-text3 uppercase tracking-wider">{label}</div>
       <div className="text-sm font-semibold text-text mt-0.5 truncate">{value}</div>
     </div>
@@ -79,16 +79,16 @@ export function StatCard({
   return (
     <div
       onClick={onClick}
-      className="bg-card border border-border rounded-lg p-4 cursor-pointer hover:border-accent/30 transition-colors group relative overflow-hidden"
+      className="glass rounded-lg p-4 cursor-pointer hover:opacity-90 transition-all duration-150 group relative overflow-hidden"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Icon size={16} className="text-text3 group-hover:text-accent transition-colors" />
-          <span className="text-xs text-text3 font-medium">{config.label}</span>
+          <span className="text-[11px] text-text3 font-semibold uppercase tracking-[0.06em]">{config.label}</span>
         </div>
       </div>
 
-      <div className={cn('text-2xl font-bold tracking-tight', showBar ? statusColor(percent) : 'text-text')}>
+      <div className={cn('text-[22px] font-bold tracking-[-0.5px] leading-none', showBar ? statusColor(percent) : 'text-text')}>
         {value}
       </div>
       <div className="text-xs text-text3 mt-0.5 truncate">{sub}</div>

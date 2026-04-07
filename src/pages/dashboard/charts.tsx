@@ -9,7 +9,8 @@ import * as echarts from 'echarts/core'
 import { cn } from '@/lib/utils'
 import { ensureArray } from '@/lib/utils'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import { THEME_NAME, ECHARTS_COLORS, PERIOD_OPTIONS } from './constants'
+import { THEME_NAME, LIGHT_THEME_NAME, ECHARTS_COLORS, PERIOD_OPTIONS } from './constants'
+import { useThemeStore } from '@/stores/themeStore'
 import type { AlertSummary, HistoryPeriod, HistoryPoint } from './types'
 import type { MetricsData } from '@/hooks/useWebSocket'
 import { statusHex } from './utils'
@@ -18,6 +19,8 @@ import { statusHex } from './utils'
 // Sparkline mini chart
 // ---------------------------------------------------------------------------
 export function Sparkline({ data, color }: { data: number[]; color: string }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => ({
     grid: { top: 2, right: 0, bottom: 2, left: 0 },
     xAxis: { type: 'category' as const, show: false, data: data.map((_, i) => i) },
@@ -41,7 +44,7 @@ export function Sparkline({ data, color }: { data: number[]; color: string }) {
   return (
     <ReactECharts
       option={option}
-      theme={THEME_NAME}
+      theme={chartTheme}
       style={{ height: 60, width: '100%' }}
       opts={{ renderer: 'canvas' }}
       notMerge
@@ -68,6 +71,8 @@ export function DetailChart({
   unit?: string
   max?: number
 }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => ({
     grid: { top: 36, right: 20, bottom: 28, left: 50 },
     title: { text: title, textStyle: { color: '#e2e8f0', fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
@@ -108,7 +113,7 @@ export function DetailChart({
   return (
     <ReactECharts
       option={option}
-      theme={THEME_NAME}
+      theme={chartTheme}
       style={{ height: 280, width: '100%' }}
       opts={{ renderer: 'canvas' }}
       notMerge
@@ -131,6 +136,8 @@ export function MultiLineChart({
   title: string
   unit?: string
 }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => ({
     grid: { top: 48, right: 20, bottom: 28, left: 50 },
     title: { text: title, textStyle: { color: '#e2e8f0', fontSize: 14, fontWeight: 500 }, left: 8, top: 8 },
@@ -151,7 +158,7 @@ export function MultiLineChart({
   return (
     <ReactECharts
       option={option}
-      theme={THEME_NAME}
+      theme={chartTheme}
       style={{ height: 320, width: '100%' }}
       opts={{ renderer: 'canvas' }}
       notMerge
@@ -172,6 +179,8 @@ export function SystemTrendChart({
   period: HistoryPeriod
   setPeriod: (p: HistoryPeriod) => void
 }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const timestamps = historyData.map((h) => {
       const d = new Date(h.timestamp)
@@ -216,7 +225,7 @@ export function SystemTrendChart({
           </button>
         ))}
       </div>
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 280, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 280, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -225,6 +234,8 @@ export function SystemTrendChart({
 // Overview: Alert Distribution donut (4 cols)
 // ---------------------------------------------------------------------------
 export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const critical = summary?.critical ?? 0
     const warning = summary?.warning ?? 0
@@ -251,7 +262,7 @@ export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 180, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 180, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -260,6 +271,8 @@ export function AlertDonut({ summary }: { summary: AlertSummary | null }) {
 // Overview: Docker Health donut (4 cols)
 // ---------------------------------------------------------------------------
 export function DockerHealthDonut({ containers }: { containers: Array<{ state: string }> | null }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const items = ensureArray<{ state: string }>(containers)
     const running = items.filter((c) => c.state === 'running').length
@@ -289,7 +302,7 @@ export function DockerHealthDonut({ containers }: { containers: Array<{ state: s
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 180, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 180, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -298,6 +311,8 @@ export function DockerHealthDonut({ containers }: { containers: Array<{ state: s
 // Overview: Network Throughput Trend (4 cols)
 // ---------------------------------------------------------------------------
 export function NetworkTrendChart({ history }: { history: MetricsData[] }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const recvRates: number[] = []
     const sentRates: number[] = []
@@ -335,7 +350,7 @@ export function NetworkTrendChart({ history }: { history: MetricsData[] }) {
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -344,6 +359,8 @@ export function NetworkTrendChart({ history }: { history: MetricsData[] }) {
 // Overview: Disk & Mount Pressure (4 cols)
 // ---------------------------------------------------------------------------
 export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const partitions = (metrics.disk?.partitions ?? []).slice(0, 8)
     const names = partitions.map((p) => p.mountpoint.length > 12 ? '...' + p.mountpoint.slice(-10) : p.mountpoint)
@@ -369,7 +386,7 @@ export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -378,6 +395,8 @@ export function DiskPressureChart({ metrics }: { metrics: MetricsData }) {
 // Overview: Top Process Resource (4 cols)
 // ---------------------------------------------------------------------------
 export function TopProcessChart({ processes }: { processes: Array<{ name: string; cpu_percent: number; mem_rss_mb: number }> | null }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const top5 = ensureArray<{ name: string; cpu_percent: number; mem_rss_mb: number }>(processes).slice(0, 5)
     const names = top5.map((p) => p.name.length > 12 ? p.name.slice(0, 12) + '...' : p.name)
@@ -398,7 +417,7 @@ export function TopProcessChart({ processes }: { processes: Array<{ name: string
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -407,6 +426,8 @@ export function TopProcessChart({ processes }: { processes: Array<{ name: string
 // Overview: Container Group Resource (4 cols)
 // ---------------------------------------------------------------------------
 export function ContainerGroupChart({ containers }: { containers: Array<{ name: string; state: string }> | null }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     // Group by compose project prefix (name before the first hyphen-number pattern)
     const groups: Record<string, { running: number; stopped: number }> = {}
@@ -438,7 +459,7 @@ export function ContainerGroupChart({ containers }: { containers: Array<{ name: 
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
@@ -447,6 +468,8 @@ export function ContainerGroupChart({ containers }: { containers: Array<{ name: 
 // Overview: Resource Mix Radar (4 cols)
 // ---------------------------------------------------------------------------
 export function ResourceRadar({ metrics }: { metrics: MetricsData }) {
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
   const option = useMemo(() => {
     const cpu = metrics.cpu?.overall_percent ?? 0
     const mem = metrics.memory?.percent ?? 0
@@ -488,7 +511,7 @@ export function ResourceRadar({ metrics }: { metrics: MetricsData }) {
 
   return (
     <div className="bg-card border border-border rounded-lg p-3">
-      <ReactECharts option={option} theme={THEME_NAME} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
+      <ReactECharts option={option} theme={chartTheme} style={{ height: 200, width: '100%' }} opts={{ renderer: 'canvas' }} notMerge lazyUpdate />
     </div>
   )
 }
