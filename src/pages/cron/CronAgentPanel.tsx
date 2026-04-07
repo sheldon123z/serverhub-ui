@@ -2,10 +2,17 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useServerStore } from '@/stores/serverStore'
 import client from '@/api/client'
 import toast from 'react-hot-toast'
-import { useLightweightChat } from '@/hooks/useLightweightChat'
+import { cn } from '@/lib/utils'
+import { useScopedSSEChat } from '@/hooks/useScopedSSEChat'
+import { type CronJobSpec, type ScriptRegistryEntry, parseSuggestions } from '@/types/cron-agent'
 import { CronJobSpecCard } from './CronJobSpecCard'
+import { CronActionBar } from './CronActionBar'
+import { SuggestionChips } from './SuggestionChips'
+import { ScriptLinkBlock } from './ScriptLinkBlock'
 import { ScriptPreviewEditor } from './ScriptPreviewEditor'
 import { ScriptFileTree } from './ScriptFileTree'
+import { ScriptTemplateSelector } from './ScriptTemplateSelector'
+import { MarkdownContent } from '@/pages/agents/MarkdownContent'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 
 /** 现有任务的最小类型（避免循环依赖 CronPage.tsx） */
@@ -55,6 +62,11 @@ You are a specialized cron job assistant for a Linux server management system (S
 5. Always add logging to scripts (append to /tmp/ or ~/logs/)
 6. When modifying existing scripts, output the complete updated version
 7. Respond concisely in Chinese
+8. When providing optimization suggestions, output a \`suggestions\` code block:
+
+\`\`\`suggestions
+["选项一", "选项二", "选项三"]
+\`\`\`
 
 ## Current Environment
 - User: ${username}
@@ -79,7 +91,32 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
   })
   const activePrompt = editingPrompt.trim() || defaultPrompt
 
-  const { messages, isStreaming, sendMessage, clearMessages, cancelStreaming } = useLightweightChat({ pageContext: activePrompt })
+  // Script registry — tracks all generated scripts in conversation
+  const [scriptRegistry, setScriptRegistry] = useState<ScriptRegistryEntry[]>([])
+  const [activeScriptId, setActiveScriptId] = useState<string | null>(null)
+  const [showTemplateManager, setShowTemplateManager] = useState(false)
+  const [templateVersion, setTemplateVersion] = useState(0) // triggers re-render when templates change
+
+  const { messages, isStreaming, sendMessage, clearMessages, cancelStreaming } = useScopedSSEChat({
+    pageContext: activePrompt,
+    onSpecDetected: (spec, messageId) => {
+      if (spec.script_content && spec.script_path) {
+        const entry: ScriptRegistryEntry = {
+          id: `script_${Date.now()}`,
+          path: spec.script_path,
+          content: spec.script_content,
+          messageId,
+          timestamp: Date.now(),
+          lineCount: spec.script_content.split('\n').length,
+        }
+        setScriptRegistry(prev => [...prev, entry])
+        setActiveScriptId(entry.id)
+        setScriptContent(spec.script_content)
+        setScriptPath(spec.script_path)
+        setScriptOriginal(spec.script_content)
+      }
+    },
+  })
 
   const [scriptContent, setScriptContent] = useState('')
   const [scriptPath, setScriptPath] = useState('')
@@ -108,16 +145,6 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // When AI returns a spec with script content, auto-update preview
-  useEffect(() => {
-    const lastMsg = messages.at(-1)
-    if (lastMsg?.spec?.script_content && lastMsg?.spec?.script_path && !lastMsg.isStreaming) {
-      setScriptContent(lastMsg.spec.script_content)
-      setScriptPath(lastMsg.spec.script_path)
-      setScriptOriginal(lastMsg.spec.script_content)
-    }
-  }, [messages])
-
   const handleSend = useCallback(async () => {
     const text = input.trim()
     if (!text || isStreaming) return
@@ -144,6 +171,33 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
     toast.success(`脚本已写入: ${scriptPath}`)
   }, [scriptPath, currentUsername])
 
+  const handleCronAction = useCallback((action: string, contextMessage: string) => {
+    if (action === 'insert') {
+      // Insert action is handled by CronJobSpecCard directly
+      return
+    }
+    if (contextMessage) {
+      sendMessage(contextMessage)
+    }
+  }, [sendMessage])
+
+  const handleTemplateSelect = useCallback((template: { description: string; promptInstructions: string }) => {
+    // Template instructions are injected by updating the editing prompt
+    setEditingPrompt(prev => {
+      const base = prev || defaultPrompt
+      return base + '\n\n## 当前模板要求\n' + template.promptInstructions
+    })
+    // Auto-send the template request
+    sendMessage(`请根据以下需求生成脚本: ${template.description}`)
+  }, [defaultPrompt, sendMessage])
+
+  const handleScriptLinkClick = useCallback((entry: ScriptRegistryEntry) => {
+    setActiveScriptId(entry.id)
+    setScriptContent(entry.content)
+    setScriptPath(entry.path)
+    setScriptOriginal(entry.content)
+  }, [])
+
   return (
     <div className="flex flex-col h-full border-l border-border min-w-0">
       {/* Panel header */}
@@ -169,6 +223,13 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
           title="清空对话"
         >
           清空
+        </button>
+        <button
+          onClick={() => setShowTemplateManager(v => !v)}
+          className="text-[10px] text-text3 hover:text-text px-1.5 py-0.5 rounded hover:bg-card"
+          title="管理模板"
+        >
+          📋
         </button>
         <button
           onClick={onClose}
@@ -221,46 +282,92 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {messages.length === 0 && (
-              <div className="text-center py-8 text-text3">
-                <div className="text-2xl mb-2">🤖</div>
-                <div className="text-[12px]">描述你需要的定时任务</div>
-                <div className="text-[11px] mt-1 text-text3/60">例如：每天凌晨2点清理30天前的日志</div>
+              <div className="px-2 py-4">
+                <div className="text-center mb-4">
+                  <div className="text-2xl mb-2">🤖</div>
+                  <div className="text-[12px] text-text3">描述你需要的定时任务</div>
+                  <div className="text-[11px] mt-1 text-text3/60">或选择一个模板快速开始</div>
+                </div>
+                <ScriptTemplateSelector
+                  onSelectTemplate={handleTemplateSelect}
+                  onManageTemplates={() => setShowTemplateManager(true)}
+                />
               </div>
             )}
-            {messages.map(msg => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className="max-w-[88%] space-y-2">
-                  {(() => {
-                    const textOnly = msg.content
-                      .replace(/```cron-job-spec[\s\S]*?```/g, '')
-                      .trim()
-                    if (!textOnly && msg.spec) return null
-                    return (
-                      <div className={`px-3 py-2 rounded-xl text-[12px] leading-relaxed ${
-                        msg.role === 'user'
-                          ? 'bg-accent/15 border border-accent/25 text-text rounded-br-sm'
-                          : 'glass rounded-bl-sm text-text2'
-                      }`}>
-                        {textOnly || msg.content}
-                        {msg.isStreaming && (
-                          <span className="inline-block w-1 h-3 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-text-bottom" />
-                        )}
+            {messages.map(msg => {
+              // Skip tool_call and tool_result messages
+              if (msg.role === 'tool_call' || msg.role === 'tool_result') return null
+
+              return (
+                <div key={msg._id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className="max-w-[92%] space-y-1.5">
+                    {msg.role === 'user' ? (
+                      <div className="px-3 py-2 rounded-xl text-[12px] leading-relaxed bg-accent/15 border border-accent/25 text-text rounded-br-sm">
+                        {msg.content}
                       </div>
-                    )
-                  })()}
-                  {msg.spec && !msg.isStreaming && (
-                    <CronJobSpecCard
-                      spec={msg.spec}
-                      onEditScript={(content, path) => {
-                        setScriptContent(content)
-                        setScriptPath(path)
-                        setScriptOriginal(content)
-                      }}
-                    />
-                  )}
+                    ) : (
+                      <>
+                        {/* Assistant text — render with MarkdownContent, stripping cron-job-spec and suggestions blocks */}
+                        {(() => {
+                          const textOnly = msg.content
+                            .replace(/```cron-job-spec[\s\S]*?```/g, '')
+                            .replace(/```suggestions[\s\S]*?```/g, '')
+                            .trim()
+                          if (!textOnly && (msg.spec || msg.suggestions)) return null
+                          return (
+                            <div className="prose-sm text-[12px] leading-relaxed">
+                              <MarkdownContent content={textOnly || msg.content} />
+                              {msg.isStreaming && (
+                                <span className="inline-block w-1 h-3 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-text-bottom" />
+                              )}
+                            </div>
+                          )
+                        })()}
+
+                        {/* Spec card + Action bar */}
+                        {msg.spec && !msg.isStreaming && (
+                          <>
+                            <CronJobSpecCard
+                              spec={msg.spec}
+                              onEditScript={(content, path) => {
+                                setScriptContent(content)
+                                setScriptPath(path)
+                                setScriptOriginal(content)
+                              }}
+                            />
+                            <CronActionBar spec={msg.spec} onAction={handleCronAction} disabled={isStreaming} />
+                          </>
+                        )}
+
+                        {/* Script link block */}
+                        {msg.spec?.script_path && !msg.isStreaming && (
+                          <ScriptLinkBlock
+                            filePath={msg.spec.script_path}
+                            firstLine={msg.spec.script_content?.split('\n').find(l => l.trim() && !l.startsWith('#!')) ?? ''}
+                            lineCount={msg.spec.script_content?.split('\n').length ?? 0}
+                            timestamp={Date.now()}
+                            isActive={scriptRegistry.find(s => s.messageId === msg._id)?.id === activeScriptId}
+                            onClick={() => {
+                              const entry = scriptRegistry.find(s => s.messageId === msg._id)
+                              if (entry) handleScriptLinkClick(entry)
+                            }}
+                          />
+                        )}
+
+                        {/* Suggestion chips */}
+                        {msg.suggestions && msg.suggestions.length > 0 && !msg.isStreaming && (
+                          <SuggestionChips
+                            suggestions={msg.suggestions}
+                            onSelect={(text) => sendMessage(text)}
+                            disabled={isStreaming}
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             <div ref={messagesEndRef} />
           </div>
 
