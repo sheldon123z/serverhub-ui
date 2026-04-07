@@ -1,13 +1,10 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useServerStore } from '@/stores/serverStore'
+import { useAuthStore } from '@/stores/authStore'
 import client from '@/api/client'
 import { cn } from '@/lib/utils'
 
 interface ScriptFileTreeProps {
-  /** 当选中文件时回调（读取内容填充预览区） */
   onSelectFile: (path: string, content: string) => void
-  /** 当前已打开的文件路径 */
   currentFilePath?: string
 }
 
@@ -19,18 +16,18 @@ interface FileEntry {
 }
 
 export function ScriptFileTree({ onSelectFile, currentFilePath }: ScriptFileTreeProps) {
-  const serverId = useServerStore(s => s.selectedServerId)
-  const [scriptDir] = useState('~/scripts')
+  const username = useAuthStore(s => s.user)?.username ?? 'zhengxiaodong'
+  // 后端 validate_path 不展开 ~，必须用绝对路径
+  const scriptDir = `/home/${username}/scripts`
 
   const { data, isLoading } = useQuery<FileEntry[]>({
-    queryKey: ['script-files', scriptDir, serverId],
+    queryKey: ['script-files', scriptDir],
     queryFn: async () => {
       const res = await client.get('/api/files/list', {
-        params: { path: scriptDir, server_id: serverId },
+        params: { path: scriptDir },
       })
-      // Filter to show only .sh, .py, .bash files
-      const entries = (res.data?.entries ?? res.data ?? []) as FileEntry[]
-      return entries.filter((e: FileEntry) =>
+      const items = (res.data?.items ?? res.data?.entries ?? []) as FileEntry[]
+      return items.filter((e: FileEntry) =>
         e.type === 'file' && /\.(sh|bash|py|pl|rb)$/i.test(e.name)
       )
     },
@@ -41,12 +38,11 @@ export function ScriptFileTree({ onSelectFile, currentFilePath }: ScriptFileTree
   async function handleClick(file: FileEntry) {
     try {
       const res = await client.get('/api/files/read', {
-        params: { path: file.path, server_id: serverId },
+        params: { path: file.path },
       })
       const content = typeof res.data === 'string' ? res.data : (res.data?.content ?? '')
       onSelectFile(file.path, content)
     } catch {
-      // If read fails, just set the path without content
       onSelectFile(file.path, '')
     }
   }
