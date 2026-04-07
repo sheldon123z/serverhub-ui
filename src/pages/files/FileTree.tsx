@@ -114,7 +114,7 @@ function TreeItem({
           'flex items-center gap-1 w-full text-left py-1 pr-2 rounded text-[13px] transition-colors',
           isActive
             ? 'bg-accent-dim text-accent'
-            : 'text-text2 hover:text-text hover:bg-card',
+            : 'text-text2 hover:text-text hover:bg-card/60',
         )}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
         onClick={handleClick}

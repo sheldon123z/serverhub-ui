@@ -108,7 +108,7 @@ export default function ServerSelector({ selected, onChange }: ServerSelectorPro
           placeholder="搜索服务器..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-bg border border-border rounded-md px-3 py-1.5 text-xs text-text placeholder:text-text3 focus:outline-none focus:border-accent"
+          className="flex-1 glass border border-border rounded-md px-3 py-1.5 text-xs text-text placeholder:text-text3 focus:outline-none focus:border-accent"
         />
         <span className="text-xs text-text3 shrink-0">
           已选{' '}
@@ -126,7 +126,7 @@ export default function ServerSelector({ selected, onChange }: ServerSelectorPro
               'px-2 py-1 text-xs rounded transition-colors',
               groupFilter === 'all'
                 ? 'bg-accent text-[#0f172a]'
-                : 'bg-bg2 text-text3 hover:text-text2',
+                : 'glass text-text3 hover:text-text2',
             )}
           >
             全部
@@ -139,7 +139,7 @@ export default function ServerSelector({ selected, onChange }: ServerSelectorPro
                 'px-2 py-1 text-xs rounded transition-colors',
                 groupFilter === g.name
                   ? 'bg-accent text-[#0f172a]'
-                  : 'bg-bg2 text-text3 hover:text-text2',
+                  : 'glass text-text3 hover:text-text2',
               )}
             >
               {g.name}

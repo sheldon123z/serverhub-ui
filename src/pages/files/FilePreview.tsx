@@ -98,7 +98,7 @@ export function FilePreview({ entry, onEdit, onClose }: FilePreviewProps) {
         <div className="flex items-center gap-1 shrink-0">
           {!image && !tooLarge && (
             <button
-              className="flex items-center gap-1 px-2 py-1 text-[12px] bg-card text-text2 hover:text-text rounded transition-colors"
+              className="flex items-center gap-1 px-2 py-1 text-[12px] glass text-text2 hover:text-text rounded transition-colors"
               onClick={onEdit}
             >
               <i className="ti ti-edit" />
@@ -108,14 +108,14 @@ export function FilePreview({ entry, onEdit, onClose }: FilePreviewProps) {
           <a
             href={`/api/files/download?path=${encodeURIComponent(entry.path)}`}
             download={entry.name}
-            className="flex items-center gap-1 px-2 py-1 text-[12px] bg-card text-text2 hover:text-text rounded transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-[12px] glass text-text2 hover:text-text rounded transition-colors"
           >
             <i className="ti ti-download" />
             下载
           </a>
           <button
             className={`flex items-center gap-1 px-2 py-1 text-[12px] rounded transition-colors ${
-              showStat ? 'bg-accent-dim text-accent' : 'bg-card text-text2 hover:text-text'
+              showStat ? 'bg-accent-dim text-accent' : 'glass text-text2 hover:text-text'
             }`}
             onClick={() => setShowStat((v) => !v)}
             title="文件详情"
@@ -170,7 +170,7 @@ export function FilePreview({ entry, onEdit, onClose }: FilePreviewProps) {
             </a>
           </div>
         ) : image ? (
-          <div className="flex items-center justify-center h-full p-6 bg-[repeating-conic-gradient(#1e293b_0%_25%,transparent_0%_50%)_0_0/20px_20px]">
+          <div className="flex items-center justify-center h-full p-6" style={{ background: 'repeating-conic-gradient(var(--border-raw) 0% 25%, transparent 0% 50%) 0 0 / 20px 20px' }}>
             <img
               src={`/api/files/download?path=${encodeURIComponent(entry.path)}`}
               alt={entry.name}

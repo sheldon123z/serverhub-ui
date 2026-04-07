@@ -117,7 +117,7 @@ function PathSearch({ currentPath, onNavigate, onSelect, onClose }: FileSearchPr
               return (
                 <button
                   key={result.path}
-                  className="flex items-center gap-2 w-full px-3 py-2.5 text-left hover:bg-card transition-colors border-b border-border/40"
+                  className="flex items-center gap-2 w-full px-3 py-2.5 text-left hover:bg-card/60 transition-colors border-b border-border/40"
                   onClick={() => {
                     if (result.type === 'directory') {
                       onNavigate(result.path)

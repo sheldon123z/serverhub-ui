@@ -147,7 +147,7 @@ export function FileList({
                 'flex items-center w-full text-left px-3 py-1.5 text-[13px] border-b border-border/40 transition-colors',
                 selectedPath === entry.path
                   ? 'bg-accent-dim text-accent'
-                  : 'text-text2 hover:bg-card hover:text-text',
+                  : 'text-text2 hover:bg-card/60 hover:text-text',
               )}
               onClick={() => onSelect(entry)}
               onDoubleClick={() => entry.type === 'directory' && onSelect(entry)}

@@ -204,7 +204,7 @@ export function FileGrepSearch({ currentPath, onNavigate, onSelect, onClose }: F
               return (
                 <div key={filePath} className="border-b border-border/40">
                   {/* File header row */}
-                  <div className="flex items-center gap-2 px-3 py-2 bg-bg2/60 hover:bg-card transition-colors">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-bg2/60 hover:bg-card/60 transition-colors">
                     <button
                       className="flex items-center gap-2 flex-1 min-w-0 text-left"
                       onClick={() => toggleFile(filePath)}
@@ -239,7 +239,7 @@ export function FileGrepSearch({ currentPath, onNavigate, onSelect, onClose }: F
                       {lines.map((line, idx) => (
                         <button
                           key={idx}
-                          className="flex items-start gap-2 w-full px-3 py-1.5 text-left hover:bg-card/60 transition-colors group"
+                          className="flex items-start gap-2 w-full px-3 py-1.5 text-left hover:bg-card/30 transition-colors group"
                           onClick={() => handleSelectLine(filePath)}
                           title={`第 ${line.line_no} 行`}
                         >

@@ -85,10 +85,10 @@ export function DiskDetail({ metrics, history }: { metrics: MetricsData; history
 
   return (
     <div className="space-y-4">
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border text-text3 text-xs">
+            <tr className="border-b border-border/50 text-text3 text-xs">
               <th className="text-left p-3">挂载点</th>
               <th className="text-right p-3">已用</th>
               <th className="text-right p-3">总量</th>
@@ -208,7 +208,7 @@ export function GpuDetail({ metrics, history }: { metrics: MetricsData; history:
       </div>
       {/* GPU Process table */}
       {gpuProcesses.length > 0 && (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="glass rounded-lg overflow-hidden">
           <div className="px-3 py-2 border-b border-border text-xs font-medium text-text3">GPU 进程</div>
           <table className="w-full text-xs">
             <thead>

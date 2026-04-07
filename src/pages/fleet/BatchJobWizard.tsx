@@ -253,7 +253,7 @@ export default function BatchJobWizard({
       onClick={onClose}
     >
       <div
-        className="bg-bg border border-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="glass rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ── */}
@@ -340,7 +340,7 @@ export default function BatchJobWizard({
                         'flex items-start gap-3 p-4 rounded-lg border text-left transition-all',
                         presetId === p.id
                           ? 'border-accent bg-accent-dim'
-                          : 'border-border bg-bg2 hover:border-border-light',
+                          : 'border-border glass hover:border-border-light',
                       )}
                     >
                       <i
@@ -383,7 +383,7 @@ export default function BatchJobWizard({
                     onChange={(e) => setCustomCommand(e.target.value)}
                     rows={3}
                     placeholder="e.g. uptime && free -h"
-                    className="w-full bg-bg2 border border-border rounded-md px-3 py-2 text-sm text-text font-mono placeholder:text-text3 focus:outline-none focus:border-accent resize-none"
+                    className="w-full glass border border-border rounded-md px-3 py-2 text-sm text-text font-mono placeholder:text-text3 focus:outline-none focus:border-accent resize-none"
                   />
                 </div>
               )}
@@ -396,7 +396,7 @@ export default function BatchJobWizard({
                     value={serviceName}
                     onChange={(e) => setServiceName(e.target.value)}
                     placeholder="e.g. nginx"
-                    className="w-full bg-bg2 border border-border rounded-md px-3 py-2 text-sm text-text focus:outline-none focus:border-accent"
+                    className="w-full glass border border-border rounded-md px-3 py-2 text-sm text-text focus:outline-none focus:border-accent"
                   />
                 </div>
               )}
@@ -413,7 +413,7 @@ export default function BatchJobWizard({
                   value={jobName}
                   onChange={(e) => setJobName(e.target.value)}
                   placeholder={`${preset?.name ?? '批量任务'} — 将自动生成时间戳`}
-                  className="w-full bg-bg2 border border-border rounded-md px-3 py-2 text-sm text-text focus:outline-none focus:border-accent"
+                  className="w-full glass border border-border rounded-md px-3 py-2 text-sm text-text focus:outline-none focus:border-accent"
                 />
               </div>
 
@@ -429,7 +429,7 @@ export default function BatchJobWizard({
                         'p-3 rounded-lg border text-left transition-all',
                         strategy === s
                           ? 'border-accent bg-accent-dim'
-                          : 'border-border bg-bg2 hover:border-border-light',
+                          : 'border-border glass hover:border-border-light',
                       )}
                     >
                       <div className="text-sm font-medium text-text mb-1">
@@ -459,7 +459,7 @@ export default function BatchJobWizard({
                     onChange={(e) =>
                       setRollingBatchSize(Math.max(1, Number(e.target.value)))
                     }
-                    className="w-24 bg-bg2 border border-border rounded-md px-3 py-2 text-sm text-text focus:outline-none focus:border-accent"
+                    className="w-24 glass border border-border rounded-md px-3 py-2 text-sm text-text focus:outline-none focus:border-accent"
                   />
                 </div>
               )}
@@ -476,7 +476,7 @@ export default function BatchJobWizard({
               </label>
 
               {/* 摘要 */}
-              <div className="bg-bg2 border border-border rounded-lg p-4 text-xs space-y-2">
+              <div className="glass rounded-lg p-4 text-xs space-y-2">
                 <div className="text-[10px] text-text3 uppercase tracking-wider mb-3">
                   执行摘要
                 </div>

@@ -42,10 +42,10 @@ export function RecentAlertsList() {
         <Bell size={14} />
         最近告警
       </h3>
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border text-text3 text-xs">
+            <tr className="border-b border-border/50 text-text3 text-xs">
               <th className="text-left p-3">时间</th>
               <th className="text-left p-3">级别</th>
               <th className="text-left p-3">规则</th>

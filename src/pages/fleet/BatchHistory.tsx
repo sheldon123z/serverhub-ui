@@ -117,7 +117,7 @@ export default function BatchHistory({ onViewJob }: BatchHistoryProps) {
           <button
             key={job.id}
             onClick={() => onViewJob(job.id)}
-            className="w-full bg-bg2 border border-border rounded-lg p-4 text-left hover:border-border-light transition-colors group"
+            className="w-full glass rounded-lg p-4 text-left hover:border-border-light transition-colors group"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -189,7 +189,7 @@ export default function BatchHistory({ onViewJob }: BatchHistoryProps) {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1.5 text-xs bg-bg2 border border-border rounded-md text-text2 disabled:opacity-40 hover:border-border-light"
+            className="px-3 py-1.5 text-xs glass border border-border rounded-md text-text2 disabled:opacity-40 hover:border-border-light"
           >
             上一页
           </button>
@@ -199,7 +199,7 @@ export default function BatchHistory({ onViewJob }: BatchHistoryProps) {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1.5 text-xs bg-bg2 border border-border rounded-md text-text2 disabled:opacity-40 hover:border-border-light"
+            className="px-3 py-1.5 text-xs glass border border-border rounded-md text-text2 disabled:opacity-40 hover:border-border-light"
           >
             下一页
           </button>

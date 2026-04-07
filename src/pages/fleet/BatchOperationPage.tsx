@@ -164,7 +164,7 @@ export default function BatchOperationPage() {
           </div>
 
           {/* 使用提示 */}
-          <div className="bg-bg2 border border-border rounded-lg p-4 text-xs text-text3 space-y-1.5">
+          <div className="glass rounded-lg p-4 text-xs text-text3 space-y-1.5">
             <div className="font-medium text-text2 mb-2">执行策略说明</div>
             <div>
               <span className="text-text font-medium">并行</span>

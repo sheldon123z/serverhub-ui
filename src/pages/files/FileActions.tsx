@@ -115,7 +115,7 @@ export function FileActions({
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-bg2 border border-border rounded-lg p-6 w-80 flex flex-col gap-4"
+            className="glass rounded-lg p-6 w-80 flex flex-col gap-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-sm font-semibold text-text">新建文件夹</h3>
@@ -133,7 +133,7 @@ export function FileActions({
             />
             <div className="flex gap-2 justify-end">
               <button
-                className="px-3 py-1.5 text-sm bg-card text-text2 rounded hover:text-text transition-colors"
+                className="px-3 py-1.5 text-sm glass text-text2 rounded hover:text-text transition-colors"
                 onClick={() => setShowModal(false)}
               >
                 取消

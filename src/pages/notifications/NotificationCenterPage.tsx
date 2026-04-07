@@ -104,7 +104,7 @@ export default function NotificationCenterPage() {
       </div>
 
       {/* 通知列表 */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
+      <div className="glass rounded-lg overflow-hidden">
         {isLoading ? (
           <div className="py-12 text-center text-text3 text-sm">加载中...</div>
         ) : items.length === 0 ? (

@@ -281,7 +281,7 @@ export default function BatchJobProgress({ jobId, onClose }: BatchJobProgressPro
       onClick={onClose}
     >
       <div
-        className="bg-bg border border-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="glass rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header ── */}
