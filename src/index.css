@@ -1,41 +1,103 @@
 @import "tailwindcss";
 
-@theme {
-  --color-bg: #0a0f1a;
-  --color-bg2: #0f172a;
-  --color-card: #1e293b;
-  --color-card-hover: #253347;
-  --color-border: #334155;
-  --color-border-light: #475569;
-
-  --color-accent: #38bdf8;
-  --color-accent-dim: rgba(56, 189, 248, 0.15);
-  --color-green: #4ade80;
-  --color-yellow: #fbbf24;
-  --color-red: #f87171;
-  --color-orange: #fb923c;
-  --color-purple: #a78bfa;
-
-  --color-text: #e2e8f0;
-  --color-text2: #94a3b8;
-  --color-text3: #64748b;
-
-  --spacing-sidebar: 220px;
-  --spacing-header: 56px;
-  --radius-default: 8px;
+/* ─── Inter Variable 本地字体 ─── */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter/InterVariable.woff2') format('woff2');
 }
 
+/* ─── 暗色主题 token（默认）─── */
+:root {
+  --bg-raw:   #080b14;
+  --bg2-raw:  #0f1011;
+  --card-raw: rgba(255, 255, 255, 0.03);
+  --border-raw: rgba(255, 255, 255, 0.07);
+  --border-light-raw: rgba(255, 255, 255, 0.05);
+  --accent-raw: #38bdf8;
+  --accent-dim-raw: rgba(56, 189, 248, 0.12);
+  --text-raw:  #f7f8f8;
+  --text2-raw: #8a8f98;
+  --text3-raw: #62666d;
+  --glass-blur: 0px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── 亮色主题 token（macOS Sonoma 风）─── */
+[data-theme="light"] {
+  --bg2-raw:  rgba(255, 255, 255, 0.52);
+  --card-raw: rgba(255, 255, 255, 0.72);
+  --border-raw: rgba(255, 255, 255, 0.92);
+  --border-light-raw: rgba(255, 255, 255, 0.78);
+  --accent-raw: #007aff;
+  --accent-dim-raw: rgba(0, 122, 255, 0.12);
+  --text-raw:  #1c1c1e;
+  --text2-raw: rgba(60, 60, 67, 0.55);
+  --text3-raw: rgba(60, 60, 67, 0.38);
+  --glass-blur: 20px;
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.06), inset 0 1px 0 #fff;
+}
+
+/* ─── Tailwind v4 主题 token ─── */
+@theme {
+  --color-bg:           var(--bg-raw, #080b14);
+  --color-bg2:          var(--bg2-raw, #0f1011);
+  --color-card:         var(--card-raw, rgba(255,255,255,0.03));
+  --color-card-hover:   rgba(255, 255, 255, 0.05);
+  --color-border:       var(--border-raw, rgba(255,255,255,0.07));
+  --color-border-light: var(--border-light-raw, rgba(255,255,255,0.05));
+  --color-accent:       var(--accent-raw, #38bdf8);
+  --color-accent-dim:   var(--accent-dim-raw, rgba(56,189,248,0.12));
+  --color-green:        #4ade80;
+  --color-yellow:       #fbbf24;
+  --color-red:          #f87171;
+  --color-orange:       #fb923c;
+  --color-purple:       #a78bfa;
+  --color-text:         var(--text-raw, #f7f8f8);
+  --color-text2:        var(--text2-raw, #8a8f98);
+  --color-text3:        var(--text3-raw, #62666d);
+  --spacing-sidebar:    220px;
+  --spacing-header:     56px;
+  --radius-default:     8px;
+}
+
+/* ─── 全局样式 ─── */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  font-family: 'Inter Variable', -apple-system, 'SF Pro Display',
+               system-ui, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-feature-settings: 'cv01', 'ss03';
+  background-color: var(--bg-raw, #080b14);
+  color: var(--text-raw, #f7f8f8);
   -webkit-font-smoothing: antialiased;
+}
+
+/* 亮色：Sonoma 渐变背景 */
+[data-theme="light"] body {
+  background: linear-gradient(160deg, #fef3c7 0%, #dbeafe 40%, #f0fdf4 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ─── 滚动条 ─── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-border-light); }
+::-webkit-scrollbar-thumb { background: var(--border-raw); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light-raw); }
+
+/* 亮色滚动条 */
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* ─── 磨玻璃工具类（亮色启用，暗色透明）─── */
+.glass {
+  background: var(--card-raw);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-raw);
+  box-shadow: var(--shadow-card);
+}
