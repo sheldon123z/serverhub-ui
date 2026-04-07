@@ -7,7 +7,7 @@ const STORAGE_KEY = 'serverhub-theme'
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored === 'light' || stored === 'dark') return stored
-  if (window.matchMedia('(prefers-color-scheme: light)').matches) return 'light'
+  if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light'
   return 'dark'
 }
 

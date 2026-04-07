@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/authStore'
 import { useServerStore } from '@/stores/serverStore'
+import { useThemeStore } from '@/stores/themeStore'
 import { authApi } from '@/api/auth'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -30,6 +31,7 @@ const STATUS_DOT: Record<string, string> = {
 export default function TopBar({ title }: TopBarProps) {
   const { user, setUser } = useAuthStore()
   const { servers, selectedServerId, setSelectedServer, fetchServers } = useServerStore()
+  const { theme, toggleTheme } = useThemeStore()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -62,7 +64,14 @@ export default function TopBar({ title }: TopBarProps) {
   const currentStatus = currentServer?.status ?? 'online'
 
   return (
-    <header className="h-header border-b border-border flex items-center justify-between px-6 flex-shrink-0">
+    <header
+      className="h-header border-b border-border flex items-center justify-between px-6 flex-shrink-0"
+      style={{
+        background: 'var(--bg2-raw)',
+        backdropFilter: 'blur(var(--glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+      }}
+    >
       <div className="text-base font-semibold">{title}</div>
       <div className="flex items-center gap-3">
         {/* 服务器选择器 */}
@@ -120,6 +129,15 @@ export default function TopBar({ title }: TopBarProps) {
         </div>
 
         <span className="text-xs text-text3">每 15s 自动刷新</span>
+        {/* 主题切换按钮 */}
+        <button
+          onClick={toggleTheme}
+          aria-label="切换主题"
+          title={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
+          className="w-8 h-8 flex items-center justify-center rounded-md border border-border text-text2 hover:text-text hover:border-border-light transition-colors text-sm"
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         <NotificationBell />
         {user && (
           <div className="flex items-center gap-2">
