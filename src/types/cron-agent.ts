@@ -18,10 +18,14 @@ export interface LightChatMessage {
 
 /** 解析 agent 响应内容中的 cron-job-spec 代码块 */
 export function parseCronJobSpec(content: string): CronJobSpec | null {
-  const match = content.match(/```cron-job-spec\r?\n([\s\S]*?)\r?\n```/)
+  const match = content.match(/```cron-job-spec\r?\n([\s\S]+?)\r?\n```/m)
   if (!match) return null
   try {
-    const spec = JSON.parse(match[1]) as CronJobSpec
+    // Escape literal newlines inside JSON string values so JSON.parse succeeds
+    const sanitized = match[1].replace(/("(?:[^"\\]|\\.)*")/g, (m) =>
+      m.replace(/\n/g, '\\n').replace(/\r/g, '\\r')
+    )
+    const spec = JSON.parse(sanitized) as CronJobSpec
     if (!spec.schedule || !spec.command) return null
     return spec
   } catch {
