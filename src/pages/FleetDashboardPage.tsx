@@ -9,44 +9,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import ReactECharts from 'echarts-for-react'
-import * as echarts from 'echarts/core'
 import client from '@/api/client'
 import { useServerStore } from '@/stores/serverStore'
+import { useThemeStore } from '@/stores/themeStore'
 import { cn, formatPercent } from '@/lib/utils'
-
-// ---------------------------------------------------------------------------
-// ECharts dark theme (reuse registration from DashboardPage if loaded,
-// otherwise register here idempotently)
-// ---------------------------------------------------------------------------
-const THEME_NAME = 'serverhub-dark'
-const ECHARTS_COLORS = ['#38bdf8', '#4ade80', '#fbbf24', '#f87171', '#a78bfa', '#fb923c']
-
-try {
-  echarts.registerTheme(THEME_NAME, {
-    backgroundColor: 'transparent',
-    color: ECHARTS_COLORS,
-    tooltip: {
-      backgroundColor: 'rgba(15,23,42,0.95)',
-      borderColor: '#334155',
-      textStyle: { color: '#e2e8f0', fontSize: 12 },
-    },
-    legend: { textStyle: { color: '#94a3b8' } },
-    categoryAxis: {
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisTick: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#64748b' },
-      splitLine: { lineStyle: { color: '#1e293b' } },
-    },
-    valueAxis: {
-      axisLine: { lineStyle: { color: '#334155' } },
-      axisTick: { lineStyle: { color: '#334155' } },
-      axisLabel: { color: '#64748b' },
-      splitLine: { lineStyle: { color: '#1e293b' } },
-    },
-  })
-} catch {
-  // theme already registered
-}
+// Reuse the theme registrations from dashboard/constants (imported for side-effects)
+import { THEME_NAME, LIGHT_THEME_NAME, ECHARTS_COLORS } from '@/pages/dashboard/constants'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -386,6 +354,8 @@ function CompareChart() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [metric, setMetric] = useState('cpu')
   const [hours, setHours] = useState(1)
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
 
   // Fetch fleet for server list
   const { data: fleetData } = useQuery<FleetSummary>({
@@ -465,7 +435,7 @@ function CompareChart() {
       },
       series: seriesArr,
     }
-  }, [compareData, servers, metric])
+  }, [compareData, servers, metric, theme])
 
   return (
     <div className="flex gap-4">
@@ -554,7 +524,7 @@ function CompareChart() {
         ) : (
           <ReactECharts
             option={chartOption}
-            theme={THEME_NAME}
+            theme={chartTheme}
             style={{ height: '100%', width: '100%' }}
             notMerge
           />
@@ -583,6 +553,11 @@ function HeatmapView() {
     refetchInterval: 30_000,
   })
 
+  const { theme } = useThemeStore()
+  const chartTheme = theme === 'light' ? LIGHT_THEME_NAME : THEME_NAME
+  const axisLabelColor = theme === 'light' ? 'rgba(60,60,67,0.4)' : '#94a3b8'
+  const labelColor = theme === 'light' ? '#1c1c1e' : '#e2e8f0'
+
   const chartOption = useMemo(() => {
     if (!data || data.servers.length === 0) return {}
 
@@ -610,13 +585,13 @@ function HeatmapView() {
         type: 'category',
         data: metricLabels,
         splitArea: { show: true },
-        axisLabel: { color: '#94a3b8' },
+        axisLabel: { color: axisLabelColor },
       },
       yAxis: {
         type: 'category',
         data: serverNames,
         splitArea: { show: true },
-        axisLabel: { color: '#94a3b8' },
+        axisLabel: { color: axisLabelColor },
       },
       visualMap: {
         min: 0,
@@ -628,7 +603,7 @@ function HeatmapView() {
         inRange: {
           color: ['#065f46', '#16a34a', '#facc15', '#f97316', '#dc2626'],
         },
-        textStyle: { color: '#94a3b8' },
+        textStyle: { color: axisLabelColor },
       },
       series: [
         {
@@ -637,7 +612,7 @@ function HeatmapView() {
           label: {
             show: true,
             formatter: (p: { value: [number, number, number] }) => `${p.value[2]}%`,
-            color: '#e2e8f0',
+            color: labelColor,
             fontSize: 11,
           },
           emphasis: {
@@ -646,7 +621,7 @@ function HeatmapView() {
         },
       ],
     }
-  }, [data])
+  }, [data, theme, axisLabelColor, labelColor])
 
   if (isLoading) {
     return (
@@ -668,7 +643,7 @@ function HeatmapView() {
     <div className="bg-bg2 rounded-lg border border-border p-4">
       <ReactECharts
         option={chartOption}
-        theme={THEME_NAME}
+        theme={chartTheme}
         style={{ height: Math.max(300, data.servers.length * 50 + 80), width: '100%' }}
         notMerge
       />
