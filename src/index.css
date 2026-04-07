@@ -83,6 +83,28 @@ body {
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ─── 主题切换过渡动画 ─── */
+*, *::before, *::after {
+  transition:
+    background-color 300ms ease,
+    background 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease,
+    box-shadow 300ms ease;
+}
+/* 排除动画元素和交互元素，避免 hover 延迟 */
+.animate-pulse, .animate-spin, [class*="animate-"],
+button, a, input, textarea, select {
+  transition:
+    background-color 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
 /* ─── 滚动条 ─── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
