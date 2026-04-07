@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/authStore'
 import { useQueryClient } from '@tanstack/react-query'
+import { useThemeStore } from '@/stores/themeStore'
 
 /** 登录表单数据 */
 interface LoginFormData {
@@ -18,6 +19,8 @@ interface LoginFormData {
  * 提供 JWT Cookie 认证登录表单，含粒子网络动画背景和鼠标跟随光效
  */
 export default function LoginPage() {
+  const { theme } = useThemeStore()
+  const isLight = theme === 'light'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const setUser = useAuthStore((s) => s.setUser)
@@ -157,12 +160,18 @@ export default function LoginPage() {
   }, [])
 
   return (
-    <div style={styles.root} onMouseMove={handleMouseMove}>
+    <div style={{
+      ...styles.root,
+      background: isLight
+        ? 'linear-gradient(160deg, #fef3c7 0%, #dbeafe 40%, #f0fdf4 100%)'
+        : styles.root.background,
+      color: isLight ? '#1c1c1e' : '#f1f5f9',
+    }} onMouseMove={handleMouseMove}>
       <style>{keyframesCSS}</style>
 
       {/* Ambient Glow Orbs */}
-      <div style={{ ...styles.glowOrb, ...styles.glowOrb1 }} />
-      <div style={{ ...styles.glowOrb, ...styles.glowOrb2 }} />
+      <div style={{ ...styles.glowOrb, ...styles.glowOrb1, opacity: isLight ? 0.3 : 1 }} />
+      <div style={{ ...styles.glowOrb, ...styles.glowOrb2, opacity: isLight ? 0.3 : 1 }} />
 
       {/* SVG Grid Background */}
       <svg style={styles.gridBg} xmlns="http://www.w3.org/2000/svg">
@@ -223,7 +232,7 @@ export default function LoginPage() {
       </div>
 
       {/* Particle Canvas */}
-      <canvas ref={canvasRef} style={styles.canvas} />
+      <canvas ref={canvasRef} style={{ ...styles.canvas, opacity: isLight ? 0.15 : 1 }} />
 
       {/* Mouse Follow Glow */}
       <div
@@ -239,6 +248,14 @@ export default function LoginPage() {
         <div
           style={{
             ...styles.loginCard,
+            ...(isLight ? {
+              background: 'rgba(255, 255, 255, 0.72)',
+              backdropFilter: 'blur(24px) saturate(1.5)',
+              WebkitBackdropFilter: 'blur(24px) saturate(1.5)',
+              border: '1px solid rgba(255, 255, 255, 0.9)',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,1)',
+              color: '#1c1c1e',
+            } : {}),
             animation: isExiting
               ? 'cardIn 0.4s ease reverse forwards'
               : 'cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards',
@@ -263,7 +280,7 @@ export default function LoginPage() {
           </div>
 
           <h1 style={styles.title}>ServerHub</h1>
-          <p style={styles.subtitle}>
+          <p style={{ ...styles.subtitle, color: isLight ? 'rgba(60,60,67,0.5)' : '#475569' }}>
             <code style={styles.subtitleCode}>NF5468M6</code> &middot; 服务器管理系统
           </p>
 
@@ -305,7 +322,14 @@ export default function LoginPage() {
                 id="username"
                 type="text"
                 className="login-form-input"
-                style={styles.formInput}
+                style={{
+                  ...styles.formInput,
+                  ...(isLight ? {
+                    background: 'rgba(255,255,255,0.6)',
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    color: '#1c1c1e',
+                  } : {}),
+                }}
                 placeholder="请输入用户名"
                 autoComplete="username"
                 autoFocus
@@ -331,7 +355,14 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 className="login-form-input"
-                style={styles.formInput}
+                style={{
+                  ...styles.formInput,
+                  ...(isLight ? {
+                    background: 'rgba(255,255,255,0.6)',
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    color: '#1c1c1e',
+                  } : {}),
+                }}
                 placeholder="请输入密码"
                 autoComplete="current-password"
                 {...register('password', { required: true })}
@@ -369,7 +400,13 @@ export default function LoginPage() {
       </div>
 
       {/* Bottom Bar */}
-      <div style={styles.bottomBar}>
+      <div style={{
+        ...styles.bottomBar,
+        color: isLight ? 'rgba(60,60,67,0.45)' : '#475569',
+        background: isLight
+          ? 'linear-gradient(to top, rgba(255,255,255,0.3), transparent)'
+          : styles.bottomBar.background,
+      }}>
         <span>ServerHub v1.0</span>
         <div style={styles.techStack}>
           <span style={styles.techItem}>FastAPI</span>
