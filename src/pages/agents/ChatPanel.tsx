@@ -282,7 +282,14 @@ export function ChatPanel() {
         />
       )}
 
-      <div className="border-t border-border px-3 py-2.5">
+      <div
+        className="border-t border-border px-3 py-2.5"
+        style={{
+          background: 'var(--bg2-raw)',
+          backdropFilter: 'blur(var(--glass-blur))',
+          WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        }}
+      >
         {!!recommendations?.length && (
           <div className="mb-2 flex flex-wrap gap-2">
             {recommendations.map((item) => (
@@ -334,10 +341,10 @@ export function ChatPanel() {
             placeholder="输入消息... (Shift+Enter 换行)"
             rows={1}
             className={cn(
-              'flex-1 resize-none rounded-lg border border-border bg-bg2 px-3 py-2.5 text-sm text-text',
+              'flex-1 resize-none rounded-lg border border-border px-3 py-2.5 text-sm text-text',
               'placeholder:text-text3 focus:border-accent focus:outline-none',
             )}
-            style={{ minHeight: '44px', maxHeight: '150px' }}
+            style={{ minHeight: '44px', maxHeight: '150px', background: 'var(--card-raw)' }}
           />
           {isStreaming ? (
             <button

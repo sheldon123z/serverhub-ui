@@ -112,7 +112,7 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
           <div
             className={cn(
               'rounded-xl rounded-bl-sm px-4 py-2.5',
-              'bg-bg2 border border-border',
+              'glass',
               'text-sm leading-relaxed',
             )}
           >
@@ -169,7 +169,7 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
   /* ── Fallback ─────────────────────────────────── */
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] rounded-lg bg-bg2 border border-border px-3 py-2 text-sm text-text2">
+      <div className="max-w-[85%] glass rounded-lg px-3 py-2 text-sm text-text2">
         {content}
       </div>
     </div>
