@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useThemeStore } from '@/stores/themeStore'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { cn, formatDate, getErrorMessage } from '@/lib/utils'
@@ -392,6 +393,7 @@ function MermaidChart({ code }: { code: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [rendered, setRendered] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const { theme } = useThemeStore()
 
   useEffect(() => {
     let cancelled = false
@@ -399,10 +401,19 @@ function MermaidChart({ code }: { code: string }) {
     async function render() {
       try {
         const mermaid = (await import('mermaid')).default
+        const isLight = theme === 'light'
         mermaid.initialize({
           startOnLoad: false,
-          theme: 'dark',
-          themeVariables: {
+          theme: isLight ? 'default' : 'dark',
+          themeVariables: isLight ? {
+            darkMode: false,
+            background: 'rgba(255,255,255,0.72)',
+            primaryColor: '#007aff',
+            primaryTextColor: '#1c1c1e',
+            lineColor: 'rgba(0,0,0,0.2)',
+            secondaryColor: 'rgba(255,255,255,0.6)',
+            tertiaryColor: 'rgba(241,245,249,0.8)',
+          } : {
             darkMode: true,
             background: '#1a1a2e',
             primaryColor: '#3b82f6',
@@ -433,7 +444,7 @@ function MermaidChart({ code }: { code: string }) {
     return () => {
       cancelled = true
     }
-  }, [code])
+  }, [code, theme])
 
   if (error) {
     return (
@@ -705,7 +716,7 @@ export default function PipelinesPage() {
                 'mb-1 flex w-full flex-col items-start rounded-lg px-3 py-2.5 text-left transition-colors',
                 p.id === selectedId
                   ? 'bg-accent-dim text-accent'
-                  : 'text-text2 hover:bg-bg2 hover:text-text',
+                  : 'text-text2 hover:bg-card hover:text-text',
               )}
             >
               <div className="flex w-full items-center gap-2">
@@ -759,7 +770,7 @@ export default function PipelinesPage() {
                     'rounded-lg px-3 py-1.5 text-sm transition-colors',
                     detailTab === t
                       ? 'bg-accent-dim text-accent'
-                      : 'text-text2 hover:bg-bg2 hover:text-text',
+                      : 'text-text2 hover:bg-card hover:text-text',
                   )}
                 >
                   {t === 'edit' ? '编辑' : t === 'preview' ? '预览' : '历史'}
@@ -1111,7 +1122,7 @@ function HistoryTab({
                 key={run.id}
                 className={cn(
                   'border-b border-border transition-colors',
-                  run.id === activeRunId ? 'bg-accent-dim/30' : 'hover:bg-bg2',
+                  run.id === activeRunId ? 'bg-accent-dim/30' : 'hover:bg-card',
                 )}
               >
                 <td className="px-4 py-2.5">
@@ -1423,7 +1434,7 @@ steps:
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-border px-4 py-2 text-sm text-text2 transition-colors hover:bg-bg2"
+            className="rounded-lg border border-border px-4 py-2 text-sm text-text2 transition-colors hover:bg-card"
           >
             取消
           </button>
@@ -1508,7 +1519,7 @@ function RunModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-border px-4 py-2 text-sm text-text2 transition-colors hover:bg-bg2"
+            className="rounded-lg border border-border px-4 py-2 text-sm text-text2 transition-colors hover:bg-card"
           >
             取消
           </button>
