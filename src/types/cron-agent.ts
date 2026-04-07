@@ -49,3 +49,80 @@ export function cronToHuman(expr: string): string {
   if (hour.startsWith('*/')) return `每 ${hour.slice(2)} 小时`
   return expr
 }
+
+// ─── V2 新增类型 ───
+
+/** Scoped chat 消息（独立于全局 chatStore） */
+export interface ScopedMessage {
+  _id: string
+  role: 'user' | 'assistant' | 'tool_call' | 'tool_result'
+  content: string
+  tool?: string
+  args?: Record<string, unknown>
+  spec?: CronJobSpec
+  suggestions?: string[]
+  isStreaming?: boolean
+  _serverId?: string
+}
+
+/** 脚本注册表条目（追踪对话中生成的所有脚本） */
+export interface ScriptRegistryEntry {
+  id: string
+  path: string
+  content: string
+  messageId: string
+  timestamp: number
+  lineCount: number
+}
+
+/** 模板分类 */
+export type TemplateCategory = 'backup' | 'monitoring' | 'cleanup' | 'security' | 'report' | 'custom'
+
+/** 脚本模板 */
+export interface ScriptTemplate {
+  id: string
+  name: string
+  category: TemplateCategory
+  description: string
+  promptInstructions: string
+  defaultSchedule?: string
+  icon: string
+  isBuiltin: boolean
+}
+
+/** 解析 agent 响应中的 ```suggestions 代码块 */
+export function parseSuggestions(content: string): string[] | null {
+  const match = content.match(/```suggestions\r?\n([\s\S]*?)\r?\n```/)
+  if (!match) return null
+  try {
+    const arr = JSON.parse(match[1])
+    if (Array.isArray(arr) && arr.every(item => typeof item === 'string') && arr.length > 0) {
+      return arr
+    }
+    return null
+  } catch {
+    // Fallback: try parsing as newline-separated list
+    const lines = match[1].split('\n').map(l => l.trim()).filter(Boolean)
+    return lines.length > 0 ? lines : null
+  }
+}
+
+/** 从文件扩展名推断语言 */
+export function detectLanguage(filePath: string): string {
+  const ext = filePath.split('.').pop()?.toLowerCase() ?? ''
+  const map: Record<string, string> = {
+    sh: 'bash', bash: 'bash', zsh: 'bash',
+    py: 'python', python: 'python',
+    js: 'javascript', mjs: 'javascript',
+    ts: 'typescript', tsx: 'typescript',
+    java: 'java',
+    json: 'json',
+    yaml: 'yaml', yml: 'yaml',
+    md: 'markdown', markdown: 'markdown',
+    sql: 'sql',
+    css: 'css',
+    dockerfile: 'docker',
+    conf: 'nginx',
+  }
+  return map[ext] ?? 'bash'
+}
