@@ -122,7 +122,7 @@ function AddProfileForm({ instanceId, onDone }: { instanceId: string; onDone: ()
   })
 
   return (
-    <div className="bg-bg border border-border rounded-lg p-4 space-y-3">
+    <div className="glass rounded-lg p-4 space-y-3">
       <h5 className="text-xs uppercase text-text3 font-medium">新增配置</h5>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <input
@@ -212,7 +212,7 @@ function ClashExtension({ instanceId }: { instanceId: string }) {
       ) : (
         <div className="space-y-1">
           {groups.map((g) => (
-            <div key={g.name} className="bg-bg border border-border rounded-lg overflow-hidden">
+            <div key={g.name} className="glass rounded-lg overflow-hidden">
               {/* Group header */}
               <div
                 className="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-card/50 transition-colors"

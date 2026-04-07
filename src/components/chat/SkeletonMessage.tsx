@@ -25,7 +25,7 @@ function SkeletonBar({ index, width }: { index: number; width: string }) {
 export function SkeletonMessage() {
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] rounded-xl rounded-bl-sm px-4 py-3 bg-bg2 border border-border space-y-2.5">
+      <div className="max-w-[85%] rounded-xl rounded-bl-sm px-4 py-3 glass space-y-2.5">
         <SkeletonBar index={0} width="85%" />
         <SkeletonBar index={1} width="70%" />
         <SkeletonBar index={2} width="55%" />

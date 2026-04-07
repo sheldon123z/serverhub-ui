@@ -147,7 +147,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="简要描述此次变更"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -156,7 +156,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
               <select
                 value={form.event_type}
                 onChange={(e) => setForm((f) => ({ ...f, event_type: e.target.value as ChangeEvent['event_type'] }))}
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
               >
                 {Object.entries(EVENT_TYPE_LABELS).map(([v, l]) => (
                   <option key={v} value={v}>{l}</option>
@@ -168,7 +168,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
               <select
                 value={form.risk_level}
                 onChange={(e) => setForm((f) => ({ ...f, risk_level: e.target.value as ChangeEvent['risk_level'] }))}
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
               >
                 <option value="low">低风险</option>
                 <option value="medium">中风险</option>
@@ -183,7 +183,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
                 type="datetime-local"
                 value={form.timestamp}
                 onChange={(e) => setForm((f) => ({ ...f, timestamp: e.target.value }))}
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
               />
             </div>
             <div>
@@ -194,7 +194,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
                 value={form.duration_minutes}
                 onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
                 placeholder="可选"
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -204,7 +204,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
               value={form.affected_services}
               onChange={(e) => setForm((f) => ({ ...f, affected_services: e.target.value }))}
               placeholder="如: nginx, api, worker"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
             />
           </div>
           <div>
@@ -214,7 +214,7 @@ function CreateEventModal({ onClose, onSave, isPending }: CreateEventModalProps)
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={3}
               placeholder="可选：填写变更原因、回滚方案等"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none resize-none"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none resize-none"
             />
           </div>
           <div className="flex justify-end gap-2 pt-1">
@@ -296,7 +296,7 @@ function CreateFreezeModal({ onClose, onSave, isPending }: CreateFreezeModalProp
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               placeholder="如: 春节期间变更冻结"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -306,7 +306,7 @@ function CreateFreezeModal({ onClose, onSave, isPending }: CreateFreezeModalProp
                 type="datetime-local"
                 value={form.start_time}
                 onChange={(e) => setForm((f) => ({ ...f, start_time: e.target.value }))}
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
               />
             </div>
             <div>
@@ -315,7 +315,7 @@ function CreateFreezeModal({ onClose, onSave, isPending }: CreateFreezeModalProp
                 type="datetime-local"
                 value={form.end_time}
                 onChange={(e) => setForm((f) => ({ ...f, end_time: e.target.value }))}
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
+                className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -326,7 +326,7 @@ function CreateFreezeModal({ onClose, onSave, isPending }: CreateFreezeModalProp
               onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
               rows={2}
               placeholder="可选"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none resize-none"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text focus:border-accent focus:outline-none resize-none"
             />
           </div>
           <div className="flex justify-end gap-2 pt-1">
@@ -498,7 +498,7 @@ export default function ChangelogPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-bg border border-border rounded-lg px-2.5 py-1 text-xs text-text focus:border-accent focus:outline-none"
+              className="glass rounded-lg px-2.5 py-1 text-xs text-text focus:border-accent focus:outline-none"
             >
               <option value="">全部类型</option>
               {Object.entries(EVENT_TYPE_LABELS).map(([v, l]) => (
@@ -511,7 +511,7 @@ export default function ChangelogPage() {
               <select
                 value={operatorFilter}
                 onChange={(e) => setOperatorFilter(e.target.value)}
-                className="bg-bg border border-border rounded-lg px-2.5 py-1 text-xs text-text focus:border-accent focus:outline-none"
+                className="glass rounded-lg px-2.5 py-1 text-xs text-text focus:border-accent focus:outline-none"
               >
                 <option value="">全部操作人</option>
                 {operators.map((op) => (

@@ -86,7 +86,7 @@ function RuleFormModal({
           <div className="col-span-2">
             <label className="block text-xs text-text3 mb-1">规则名称</label>
             <input
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.name ?? ''}
               onChange={(e) => set('name', e.target.value)}
               placeholder="如: 磁盘使用率警告"
@@ -96,7 +96,7 @@ function RuleFormModal({
           <div>
             <label className="block text-xs text-text3 mb-1">资源类型</label>
             <select
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.resource ?? 'system'}
               onChange={(e) => set('resource', e.target.value)}
             >
@@ -109,7 +109,7 @@ function RuleFormModal({
           <div>
             <label className="block text-xs text-text3 mb-1">严重度</label>
             <select
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.severity ?? 'warning'}
               onChange={(e) => set('severity', e.target.value as AlertRule['severity'])}
             >
@@ -122,7 +122,7 @@ function RuleFormModal({
           <div className="col-span-2">
             <label className="block text-xs text-text3 mb-1">指标路径</label>
             <input
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text font-mono"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text font-mono"
               value={form.metric ?? ''}
               onChange={(e) => set('metric', e.target.value)}
               placeholder="如: swap.percent / disks./.percent / gpu.0.temperature"
@@ -132,7 +132,7 @@ function RuleFormModal({
           <div>
             <label className="block text-xs text-text3 mb-1">运算符</label>
             <select
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.operator ?? '>'}
               onChange={(e) => set('operator', e.target.value)}
             >
@@ -146,7 +146,7 @@ function RuleFormModal({
             <label className="block text-xs text-text3 mb-1">阈值</label>
             <input
               type="number"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.threshold ?? ''}
               onChange={(e) => set('threshold', e.target.value === '' ? null : Number(e.target.value))}
               placeholder="如: 85"
@@ -157,7 +157,7 @@ function RuleFormModal({
             <label className="block text-xs text-text3 mb-1">持续时间 (秒)</label>
             <input
               type="number"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.duration_seconds ?? 60}
               onChange={(e) => set('duration_seconds', Number(e.target.value))}
             />
@@ -167,7 +167,7 @@ function RuleFormModal({
             <label className="block text-xs text-text3 mb-1">冷却时间 (秒)</label>
             <input
               type="number"
-              className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text"
+              className="w-full glass rounded-lg px-3 py-2 text-sm text-text"
               value={form.cooldown_seconds ?? 300}
               onChange={(e) => set('cooldown_seconds', Number(e.target.value))}
             />

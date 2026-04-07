@@ -27,6 +27,7 @@
 
 /* ─── 亮色主题 token（macOS Sonoma 风）─── */
 [data-theme="light"] {
+  --bg-raw:    rgba(255, 255, 255, 0.05); /* 近透明，让 Sonoma 渐变背景透出 */
   --bg2-raw:  rgba(255, 255, 255, 0.52);
   --card-raw: rgba(255, 255, 255, 0.72);
   --border-raw: rgba(255, 255, 255, 0.92);
@@ -38,6 +39,15 @@
   --text3-raw: rgba(60, 60, 67, 0.38);
   --glass-blur: 20px;
   --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.06), inset 0 1px 0 #fff;
+}
+
+/* ─── 亮色模式：输入框/下拉框统一白色半透明背景 ─── */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background: rgba(255, 255, 255, 0.7);
+  color: #1c1c1e;
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* ─── Tailwind v4 主题 token ─── */

@@ -379,7 +379,7 @@ export default function ServersPage() {
       )}
       {deployLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeployLog('')}>
-          <div className="bg-bg border border-border rounded-xl p-6 w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="glass rounded-xl p-6 w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-text mb-3">部署日志</h3>
             <pre className="bg-bg2 rounded-md p-3 text-xs text-text2 max-h-80 overflow-y-auto whitespace-pre-wrap">
               {deployLog}
@@ -707,7 +707,7 @@ function ServerFormModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-bg border border-border rounded-xl p-6 w-full max-w-md shadow-xl"
+        className="glass rounded-xl p-6 w-full max-w-md shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-text mb-4">{title}</h3>
@@ -832,7 +832,7 @@ function TokenDisplayModal({ token, onClose }: { token: string; onClose: () => v
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-bg border border-border rounded-xl p-6 w-full max-w-lg shadow-xl"
+        className="glass rounded-xl p-6 w-full max-w-lg shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-3">
@@ -880,7 +880,7 @@ function PushUpdateConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-bg border border-border rounded-xl p-6 w-full max-w-md shadow-xl"
+        className="glass rounded-xl p-6 w-full max-w-md shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-3">
