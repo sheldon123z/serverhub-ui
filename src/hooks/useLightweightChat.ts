@@ -69,7 +69,7 @@ export function useLightweightChat({ pageContext }: UseLightweightChatOptions): 
         body: JSON.stringify({
           message: text,
           conversation_id: conversationId.current,
-          safety_mode: false,
+          safety_mode: 'autonomous',
           page_context: pageContext,
         }),
       })
