@@ -35,6 +35,9 @@ function extractContent(raw: unknown): string {
 
 interface UseScopedSSEChatOptions {
   pageContext: string
+  pageSystemPrompt?: string
+  /** sessionStorage key for persisting conversationId (omit to disable) */
+  storageKey?: string
   onSpecDetected?: (spec: CronJobSpec, messageId: string) => void
   onSuggestionsDetected?: (suggestions: string[], messageId: string) => void
 }
@@ -47,6 +50,8 @@ interface UseScopedSSEChatReturn {
   sendMessage: (text: string) => Promise<void>
   clearMessages: () => void
   cancelStreaming: () => void
+  /** Load a previous conversation's messages and switch to its conversationId */
+  loadConversation: (id: string, msgs: ScopedMessage[]) => void
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -57,10 +62,20 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
   const [currentRunId, setCurrentRunId] = useState<string | null>(null)
 
   // Stable refs — do NOT trigger re-renders
-  const conversationId = useRef<string>(generateUUID())
+  const conversationId = useRef<string>(
+    (options.storageKey && sessionStorage.getItem(options.storageKey)) || generateUUID()
+  )
   const abortRef = useRef<AbortController | null>(null)
   const streamingMsgId = useRef<string>('')
   const accContent = useRef<string>('')
+
+  // Persist conversationId to sessionStorage on change
+  const persistConversationId = useCallback((id: string) => {
+    conversationId.current = id
+    if (options.storageKey) {
+      sessionStorage.setItem(options.storageKey, id)
+    }
+  }, [options.storageKey])
 
   // ── sendMessage ────────────────────────────────────────────────────────────
   const sendMessage = useCallback(
@@ -136,7 +151,7 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
 
           case 'run.completed':
             if (data.conversation_id)
-              conversationId.current = data.conversation_id as string
+              persistConversationId(data.conversation_id as string)
             break
 
           case 'run.error':
@@ -154,7 +169,7 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
 
           case 'done':
             if (data.conversation_id)
-              conversationId.current = data.conversation_id as string
+              persistConversationId(data.conversation_id as string)
             break
 
           // ALL others: silently ignore
@@ -175,6 +190,7 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
             conversation_id: conversationId.current,
             safety_mode: 'autonomous',
             page_context: options.pageContext,
+            page_system_prompt: options.pageSystemPrompt || undefined,
           }),
         })
 
@@ -273,7 +289,7 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [options.pageContext, options.onSpecDetected, options.onSuggestionsDetected],
+    [options.pageContext, options.pageSystemPrompt, options.onSpecDetected, options.onSuggestionsDetected, persistConversationId],
   )
 
   // ── cancelStreaming ─────────────────────────────────────────────────────────
@@ -308,10 +324,22 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
     setMessages([])
     setIsStreaming(false)
     setCurrentRunId(null)
-    conversationId.current = generateUUID()
+    persistConversationId(generateUUID())
     streamingMsgId.current = ''
     accContent.current = ''
-  }, [])
+  }, [persistConversationId])
+
+  // ── loadConversation ───────────────────────────────────────────────────────
+  const loadConversation = useCallback((id: string, msgs: ScopedMessage[]) => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    persistConversationId(id)
+    setMessages(msgs)
+    setIsStreaming(false)
+    setCurrentRunId(null)
+    streamingMsgId.current = ''
+    accContent.current = ''
+  }, [persistConversationId])
 
   return {
     messages,
@@ -321,5 +349,6 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
     sendMessage,
     clearMessages,
     cancelStreaming,
+    loadConversation,
   }
 }

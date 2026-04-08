@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import client from '@/api/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -389,12 +389,20 @@ export default function CronPage() {
   const serverId = useServerStore((s) => s.selectedServerId)
   const [activeTab, setActiveTab] = useState('user')
   const [section, setSection] = useState<'jobs' | 'history'>('jobs')
-  const [showAIPanel, setShowAIPanel] = useState(false)
+  const [showAIPanel, setShowAIPanel] = useState(() => {
+    const saved = sessionStorage.getItem('serverhub-cron-ai-panel')
+    return saved !== null ? saved === 'true' : true
+  })
   // 默认面板宽度 = 可用区域 (去除侧边栏 220px) 的 2/3
   const [aiPanelWidth, setAiPanelWidth] = useState(() => {
     const available = window.innerWidth - 220
     return Math.round(available * 2 / 3)
   })
+  // 持久化 AI 面板开关状态
+  useEffect(() => {
+    sessionStorage.setItem('serverhub-cron-ai-panel', String(showAIPanel))
+  }, [showAIPanel])
+
   const isDraggingRef = useRef(false)
   const dragStartXRef = useRef(0)
   const dragStartWidthRef = useRef(0)

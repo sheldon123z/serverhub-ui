@@ -158,6 +158,25 @@ export function ScriptPreviewEditor({
               ))
             })}
           </div>
+        ) : viewMode === 'view' ? (
+          <div onMouseUp={handleSelectionChange} className="h-full">
+            <SyntaxHighlighter
+              language={detectLanguage(filePath)}
+              style={oneDark}
+              customStyle={{
+                margin: 0,
+                padding: '12px',
+                background: 'transparent',
+                fontSize: '11px',
+                lineHeight: '1.6',
+                height: '100%',
+                overflow: 'auto',
+              }}
+              wrapLongLines={false}
+            >
+              {content || ' '}
+            </SyntaxHighlighter>
+          </div>
         ) : (
           <textarea
             value={content}

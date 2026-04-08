@@ -28,7 +28,8 @@ export function parseCronJobSpec(content: string): CronJobSpec | null {
     const spec = JSON.parse(sanitized) as CronJobSpec
     if (!spec.schedule || !spec.command) return null
     return spec
-  } catch {
+  } catch (e) {
+    console.warn('[parseCronJobSpec] JSON 解析失败:', e, '\n原始内容:', match[1])
     return null
   }
 }
