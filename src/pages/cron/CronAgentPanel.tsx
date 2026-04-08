@@ -502,8 +502,34 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
               </div>
             )}
             {messages.map((msg, msgIndex) => {
-              // Skip tool_call and tool_result — write_file links are rendered inside assistant bubbles
-              if (msg.role === 'tool_call' || msg.role === 'tool_result') return null
+              // tool_result always hidden
+              if (msg.role === 'tool_result') return null
+              // tool_call: show as compact activity during streaming, hide after (shown via ScriptLinkBlock)
+              if (msg.role === 'tool_call') {
+                if (!isStreaming) return null
+                const toolName = msg.tool ?? 'unknown'
+                // write_file shows as "Writing script..." with path
+                if (toolName === 'write_file') {
+                  const fp = ((msg.args?.file_path ?? msg.args?.path ?? '') as string).split('/').pop()
+                  return (
+                    <div key={msg._id} className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
+                      <div className="flex items-center gap-2 text-[11px] text-text3 px-3 py-1.5 glass rounded-lg">
+                        <span className="text-accent animate-pulse">✎</span>
+                        <span>Writing <span className="text-text2 font-mono">{fp}</span></span>
+                      </div>
+                    </div>
+                  )
+                }
+                // Other tools show with spinning indicator
+                return (
+                  <div key={msg._id} className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
+                    <div className="flex items-center gap-2 text-[11px] text-text3 px-3 py-1.5 glass rounded-lg">
+                      <span className="text-accent animate-spin inline-block" style={{ animationDuration: '1.5s' }}>⠋</span>
+                      <span className="text-text2">{toolName.replace(/_/g, ' ')}</span>
+                    </div>
+                  </div>
+                )
+              }
 
               // Get write_file data associated with this assistant message
               const attachedFiles = msg.role === 'assistant' ? writeFileByAssistant.get(msgIndex) : undefined
@@ -603,6 +629,25 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
                 </div>
               )
             })}
+            {/* Streaming thinking indicator — shows when AI is processing but assistant message has no content yet */}
+            {isStreaming && messages.length > 0 && (() => {
+              const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
+              if (lastAssistant && !lastAssistant.content && lastAssistant.isStreaming) {
+                return (
+                  <div className="flex justify-start animate-in fade-in duration-500">
+                    <div className="flex items-center gap-2.5 px-3 py-2 glass rounded-xl">
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                      <span className="text-[11px] text-text3">AI 正在思考...</span>
+                    </div>
+                  </div>
+                )
+              }
+              return null
+            })()}
             <div ref={messagesEndRef} />
           </div>
 

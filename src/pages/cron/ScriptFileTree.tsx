@@ -31,16 +31,21 @@ export function ScriptFileTree({ onSelectFile, currentFilePath, generatedFiles =
   const { data, isLoading } = useQuery<FileEntry[]>({
     queryKey: ['script-files', scriptDir],
     queryFn: async () => {
-      const res = await client.get('/api/files/list', {
-        params: { path: scriptDir },
-      })
-      const items = (res.data?.items ?? res.data?.entries ?? []) as FileEntry[]
-      return items.filter((e: FileEntry) =>
-        e.type === 'file' && /\.(sh|bash|py|pl|rb)$/i.test(e.name)
-      )
+      try {
+        const res = await client.get('/api/files/list', {
+          params: { path: scriptDir },
+        })
+        const items = (res.data?.items ?? res.data?.entries ?? []) as FileEntry[]
+        return items.filter((e: FileEntry) =>
+          e.type === 'file' && /\.(sh|bash|py|pl|rb)$/i.test(e.name)
+        )
+      } catch {
+        // 目录不存在（如 admin 用户无 home 目录）时静默返回空
+        return []
+      }
     },
     staleTime: 30_000,
-    retry: 1,
+    retry: false,
   })
 
   async function handleClick(file: FileEntry) {
