@@ -100,7 +100,10 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
 
   const STORAGE_KEY = 'serverhub-cron-conversation-id'
 
-  const { messages, isStreaming, sendMessage, clearMessages, cancelStreaming, loadConversation, conversationId } = useScopedSSEChat({
+  const {
+    messages, isStreaming, sendMessage, clearMessages, cancelStreaming, loadConversation, conversationId,
+    todos, pendingApproval, activeToolCalls, completedToolCount, totalToolCount, resolveApproval,
+  } = useScopedSSEChat({
     pageContext: 'cron',
     pageSystemPrompt: activePrompt,
     storageKey: STORAGE_KEY,
@@ -486,6 +489,43 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
 
           {/* Chat messages column */}
           <div className="flex flex-col h-full flex-1 min-w-0">
+
+          {/* Todo 进度面板 */}
+          {todos.length > 0 && (
+            <div className="px-3 py-2 border-b border-border flex-shrink-0 bg-bg2/30">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px]">📋</span>
+                <span className="text-[10px] font-semibold text-text2">
+                  任务进度 {todos.filter(t => t.status === 'completed').length}/{todos.length}
+                </span>
+                {isStreaming && todos.some(t => t.status === 'in_progress') && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                )}
+              </div>
+              <div className="h-1.5 bg-border/50 rounded-full overflow-hidden mb-1.5">
+                <div
+                  className="h-full bg-accent/70 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${Math.round((todos.filter(t => t.status === 'completed').length / todos.length) * 100)}%` }}
+                />
+              </div>
+              <div className="space-y-0.5">
+                {todos.map((t) => (
+                  <div key={t.id} className="flex items-center gap-1.5 text-[10px]">
+                    <span className={cn(
+                      t.status === 'completed' ? 'text-green' : t.status === 'in_progress' ? 'text-accent' : 'text-text3',
+                    )}>
+                      {t.status === 'completed' ? '✓' : t.status === 'in_progress' ? '⠋' : '○'}
+                    </span>
+                    <span className={cn(
+                      'truncate',
+                      t.status === 'completed' ? 'text-text3 line-through' : 'text-text2',
+                    )}>{t.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {messages.length === 0 && (
@@ -504,31 +544,103 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
             {messages.map((msg, msgIndex) => {
               // tool_result always hidden
               if (msg.role === 'tool_result') return null
-              // tool_call: show as compact activity during streaming, hide after (shown via ScriptLinkBlock)
+              // tool_call rendering
               if (msg.role === 'tool_call') {
-                if (!isStreaming) return null
                 const toolName = msg.tool ?? 'unknown'
-                // write_file shows as "Writing script..." with path
-                if (toolName === 'write_file') {
-                  const fp = ((msg.args?.file_path ?? msg.args?.path ?? '') as string).split('/').pop()
+
+                // ── Approval card ──
+                if (toolName === '__approval__') {
+                  const aId = msg.args?.approval_id as string
+                  const aToolName = msg.args?.tool_name as string
+                  const aRisk = msg.args?.risk_level as string
                   return (
                     <div key={msg._id} className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
-                      <div className="flex items-center gap-2 text-[11px] text-text3 px-3 py-1.5 glass rounded-lg">
-                        <span className="text-accent animate-pulse">✎</span>
-                        <span>Writing <span className="text-text2 font-mono">{fp}</span></span>
+                      <div className="max-w-[92%] glass rounded-xl p-3 border border-yellow/30 bg-yellow/5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm">⚠️</span>
+                          <span className="text-[12px] font-semibold text-yellow">需要审批</span>
+                          {aRisk && <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow/15 text-yellow">{aRisk}</span>}
+                        </div>
+                        <div className="text-[11px] text-text2 mb-2">
+                          {msg.content || `工具 ${aToolName} 需要您的授权`}
+                        </div>
+                        {aToolName && <div className="text-[10px] text-text3 font-mono mb-3">{aToolName}</div>}
+                        {pendingApproval?.approval_id === aId ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => resolveApproval(aId, 'approve')}
+                              className="text-[11px] font-semibold bg-green/20 text-green px-3 py-1.5 rounded-lg hover:bg-green/30 transition-colors"
+                            >
+                              ✓ 批准
+                            </button>
+                            <button
+                              onClick={() => resolveApproval(aId, 'reject')}
+                              className="text-[11px] font-semibold bg-red/20 text-red px-3 py-1.5 rounded-lg hover:bg-red/30 transition-colors"
+                            >
+                              ✗ 拒绝
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-text3">已处理</div>
+                        )}
                       </div>
                     </div>
                   )
                 }
-                // Other tools show with spinning indicator
-                return (
-                  <div key={msg._id} className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
-                    <div className="flex items-center gap-2 text-[11px] text-text3 px-3 py-1.5 glass rounded-lg">
-                      <span className="text-accent animate-spin inline-block" style={{ animationDuration: '1.5s' }}>⠋</span>
-                      <span className="text-text2">{toolName.replace(/_/g, ' ')}</span>
+
+                // ── During streaming: show tool activity ──
+                if (isStreaming) {
+                  const tcData = activeToolCalls.find(tc => tc.id === msg._serverId)
+                  const isCompleted = tcData?.completed ?? false
+
+                  if (toolName === 'write_file') {
+                    const fp = ((msg.args?.file_path ?? msg.args?.path ?? '') as string).split('/').pop()
+                    return (
+                      <div key={msg._id} className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
+                        <div className="flex items-center gap-2 text-[11px] px-3 py-1.5 glass rounded-lg">
+                          <span className={isCompleted ? 'text-green' : 'text-accent animate-pulse'}>
+                            {isCompleted ? '✓' : '✎'}
+                          </span>
+                          <span className={isCompleted ? 'text-text3' : 'text-text2'}>
+                            {isCompleted ? 'Wrote' : 'Writing'} <span className="font-mono">{fp}</span>
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  // Generic tool call display
+                  const displayName = toolName.replace(/_/g, ' ')
+                  return (
+                    <div key={msg._id} className="flex justify-start animate-in fade-in slide-in-from-left-2 duration-300">
+                      <div className="flex items-center gap-2 text-[11px] px-3 py-1.5 glass rounded-lg">
+                        {isCompleted ? (
+                          <span className="text-green">✓</span>
+                        ) : (
+                          <span className="text-accent animate-spin inline-block" style={{ animationDuration: '1.5s' }}>⠋</span>
+                        )}
+                        <span className={cn('capitalize', isCompleted ? 'text-text3' : 'text-text2')}>
+                          {displayName}
+                        </span>
+                        {msg.args && !isCompleted && (() => {
+                          // Show brief args preview for select tools
+                          if (toolName === 'read_file' || toolName === 'edit_file') {
+                            const fp = ((msg.args.file_path ?? msg.args.path ?? '') as string).split('/').pop()
+                            if (fp) return <span className="text-text3 font-mono text-[10px] truncate max-w-[120px]">{fp}</span>
+                          }
+                          if (toolName === 'execute' || toolName === 'run_shell' || toolName === 'run_shell_command') {
+                            const cmd = (msg.args.command ?? msg.args.cmd ?? '') as string
+                            if (cmd) return <span className="text-text3 font-mono text-[10px] truncate max-w-[150px]">{cmd.slice(0, 40)}</span>
+                          }
+                          return null
+                        })()}
+                      </div>
                     </div>
-                  </div>
-                )
+                  )
+                }
+
+                // ── After streaming: hide (write_file shown as ScriptLinkBlock in assistant message) ──
+                return null
               }
 
               // Get write_file data associated with this assistant message
@@ -629,24 +741,36 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
                 </div>
               )
             })}
-            {/* Streaming thinking indicator — shows when AI is processing but assistant message has no content yet */}
+            {/* Streaming activity indicator — thinking dots + tool progress */}
             {isStreaming && messages.length > 0 && (() => {
               const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
-              if (lastAssistant && !lastAssistant.content && lastAssistant.isStreaming) {
-                return (
-                  <div className="flex justify-start animate-in fade-in duration-500">
-                    <div className="flex items-center gap-2.5 px-3 py-2 glass rounded-xl">
-                      <div className="flex gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+              const showThinking = lastAssistant && !lastAssistant.content && lastAssistant.isStreaming
+              const activeCount = activeToolCalls.filter(tc => !tc.completed).length
+              if (!showThinking && activeCount === 0 && totalToolCount === 0) return null
+              return (
+                <div className="flex justify-start animate-in fade-in duration-500">
+                  <div className="glass rounded-xl px-3 py-2 space-y-1">
+                    {/* Thinking dots */}
+                    {showThinking && (
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-[11px] text-text3">AI 正在思考...</span>
                       </div>
-                      <span className="text-[11px] text-text3">AI 正在思考...</span>
-                    </div>
+                    )}
+                    {/* Tool progress bar */}
+                    {totalToolCount > 0 && (
+                      <div className="flex items-center gap-2 text-[10px] text-text3">
+                        <span className="tabular-nums">{completedToolCount}/{totalToolCount} 工具已完成</span>
+                        {activeCount > 0 && <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />}
+                      </div>
+                    )}
                   </div>
-                )
-              }
-              return null
+                </div>
+              )
             })()}
             <div ref={messagesEndRef} />
           </div>

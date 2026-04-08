@@ -33,6 +33,30 @@ function extractContent(raw: unknown): string {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export interface TodoItem {
+  id: string
+  title: string
+  status: 'pending' | 'in_progress' | 'completed'
+}
+
+export interface PendingApproval {
+  approval_id: string
+  conversation_id: string
+  run_id: string
+  tool_name?: string
+  description?: string
+  risk_level?: string
+  actions?: unknown[]
+}
+
+export interface ActiveToolCall {
+  id: string
+  name: string
+  args: Record<string, unknown>
+  startedAt: number
+  completed: boolean
+}
+
 interface UseScopedSSEChatOptions {
   pageContext: string
   pageSystemPrompt?: string
@@ -47,9 +71,15 @@ interface UseScopedSSEChatReturn {
   isStreaming: boolean
   conversationId: string
   currentRunId: string | null
+  todos: TodoItem[]
+  pendingApproval: PendingApproval | null
+  activeToolCalls: ActiveToolCall[]
+  completedToolCount: number
+  totalToolCount: number
   sendMessage: (text: string) => Promise<void>
   clearMessages: () => void
   cancelStreaming: () => void
+  resolveApproval: (approvalId: string, action: 'approve' | 'reject') => Promise<void>
   /** Load a previous conversation's messages and switch to its conversationId */
   loadConversation: (id: string, msgs: ScopedMessage[]) => void
 }
@@ -60,6 +90,11 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
   const [messages, setMessages] = useState<ScopedMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [currentRunId, setCurrentRunId] = useState<string | null>(null)
+  const [todos, setTodos] = useState<TodoItem[]>([])
+  const [pendingApproval, setPendingApproval] = useState<PendingApproval | null>(null)
+  const [activeToolCalls, setActiveToolCalls] = useState<ActiveToolCall[]>([])
+  const [completedToolCount, setCompletedToolCount] = useState(0)
+  const [totalToolCount, setTotalToolCount] = useState(0)
 
   // Stable refs — do NOT trigger re-renders
   const conversationId = useRef<string>(
@@ -101,6 +136,11 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
 
       setMessages((prev) => [...prev, userMsg, assistantMsg])
       setIsStreaming(true)
+      // Reset tool tracking for this run
+      setActiveToolCalls([])
+      setCompletedToolCount(0)
+      setTotalToolCount(0)
+      setPendingApproval(null)
 
       // ── Event handler (defined inside sendMessage so it closes over refs) ──
       function handleEvent(event: string, data: Record<string, unknown>) {
@@ -131,6 +171,7 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
               (data.input as Record<string, unknown>) ??
               (data.args as Record<string, unknown>) ??
               {}
+            const tcId = (data.id as string) ?? `tc_${Date.now()}`
             setMessages((prev) => [
               ...prev,
               {
@@ -139,15 +180,76 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
                 content: '',
                 tool: toolName,
                 args: toolArgs,
+                _serverId: tcId,
               },
             ])
+            // Track active tool call
+            setActiveToolCalls((prev) => [
+              ...prev,
+              { id: tcId, name: toolName, args: toolArgs, startedAt: Date.now(), completed: false },
+            ])
+            setTotalToolCount((n) => n + 1)
             break
           }
 
           case 'tool.result':
-          case 'tool_result':
-            // Silently consume — tool results don't need to be shown in cron panel
+          case 'tool_result': {
+            // Mark tool as completed
+            const resultToolId = (data.id as string) ?? (data.tool_call_id as string) ?? ''
+            const resultToolName = (data.tool as string) ?? ''
+            setActiveToolCalls((prev) =>
+              prev.map((tc) =>
+                (resultToolId && tc.id === resultToolId) || (!resultToolId && tc.name === resultToolName && !tc.completed)
+                  ? { ...tc, completed: true }
+                  : tc,
+              ),
+            )
+            setCompletedToolCount((n) => n + 1)
             break
+          }
+
+          case 'todo.update':
+          case 'todo_update': {
+            const rawTodos = data.todos
+            if (Array.isArray(rawTodos)) {
+              setTodos(
+                rawTodos.map((t: unknown, i: number) => {
+                  const todo = t as Record<string, unknown>
+                  return {
+                    id: (todo.id as string) ?? `todo_${i}`,
+                    title: (todo.title as string) ?? (todo.content as string) ?? '',
+                    status: (todo.status as TodoItem['status']) ?? 'pending',
+                  }
+                }),
+              )
+            }
+            break
+          }
+
+          case 'approval.request':
+          case 'approval_request': {
+            const approval: PendingApproval = {
+              approval_id: (data.approval_id as string) ?? '',
+              conversation_id: (data.conversation_id as string) ?? conversationId.current,
+              run_id: (data.run_id as string) ?? '',
+              tool_name: (data.tool_name as string) ?? (data.description as string)?.match(/待审批: (\S+)/)?.[1],
+              description: (data.description as string) ?? '需要审批',
+              risk_level: (data.risk_level as string) ?? 'moderate',
+            }
+            setPendingApproval(approval)
+            // Also add a visual message in the chat
+            setMessages((prev) => [
+              ...prev,
+              {
+                _id: `approval_${Date.now()}`,
+                role: 'tool_call',
+                content: approval.description ?? '',
+                tool: '__approval__',
+                args: { approval_id: approval.approval_id, tool_name: approval.tool_name, risk_level: approval.risk_level },
+              },
+            ])
+            break
+          }
 
           case 'run.completed':
             if (data.conversation_id)
@@ -317,6 +419,21 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
     }
   }, [currentRunId])
 
+  // ── resolveApproval ─────────────────────────────────────────────────────────
+  const resolveApproval = useCallback(async (approvalId: string, action: 'approve' | 'reject') => {
+    try {
+      await fetch(`/api/agents/approvals/${approvalId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ action }),
+      })
+      setPendingApproval(null)
+    } catch {
+      // silently fail — user can retry
+    }
+  }, [])
+
   // ── clearMessages ───────────────────────────────────────────────────────────
   const clearMessages = useCallback(() => {
     abortRef.current?.abort()
@@ -324,6 +441,11 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
     setMessages([])
     setIsStreaming(false)
     setCurrentRunId(null)
+    setTodos([])
+    setPendingApproval(null)
+    setActiveToolCalls([])
+    setCompletedToolCount(0)
+    setTotalToolCount(0)
     persistConversationId(generateUUID())
     streamingMsgId.current = ''
     accContent.current = ''
@@ -337,6 +459,11 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
     setMessages(msgs)
     setIsStreaming(false)
     setCurrentRunId(null)
+    setTodos([])
+    setPendingApproval(null)
+    setActiveToolCalls([])
+    setCompletedToolCount(0)
+    setTotalToolCount(0)
     streamingMsgId.current = ''
     accContent.current = ''
   }, [persistConversationId])
@@ -346,9 +473,15 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
     isStreaming,
     conversationId: conversationId.current,
     currentRunId,
+    todos,
+    pendingApproval,
+    activeToolCalls,
+    completedToolCount,
+    totalToolCount,
     sendMessage,
     clearMessages,
     cancelStreaming,
+    resolveApproval,
     loadConversation,
   }
 }
