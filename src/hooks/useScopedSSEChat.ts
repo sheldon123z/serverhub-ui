@@ -64,6 +64,8 @@ interface UseScopedSSEChatOptions {
   storageKey?: string
   onSpecDetected?: (spec: CronJobSpec, messageId: string) => void
   onSuggestionsDetected?: (suggestions: string[], messageId: string) => void
+  /** 当 AI 工具返回 [CRON_UPDATED] 信号时触发，用于刷新 cron 列表 */
+  onCronUpdated?: () => void
 }
 
 interface UseScopedSSEChatReturn {
@@ -384,6 +386,10 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
         if (suggestions && options.onSuggestionsDetected) {
           options.onSuggestionsDetected(suggestions, streamingMsgId.current)
         }
+        // 检测 cron 刷新信号（工具返回文本中包含 [CRON_UPDATED]）
+        if (options.onCronUpdated && accContent.current.includes('[CRON_UPDATED]')) {
+          options.onCronUpdated()
+        }
 
         accContent.current = ''
         streamingMsgId.current = ''
@@ -391,7 +397,7 @@ export function useScopedSSEChat(options: UseScopedSSEChatOptions): UseScopedSSE
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [options.pageContext, options.pageSystemPrompt, options.onSpecDetected, options.onSuggestionsDetected, persistConversationId],
+    [options.pageContext, options.pageSystemPrompt, options.onSpecDetected, options.onSuggestionsDetected, options.onCronUpdated, persistConversationId],
   )
 
   // ── cancelStreaming ─────────────────────────────────────────────────────────

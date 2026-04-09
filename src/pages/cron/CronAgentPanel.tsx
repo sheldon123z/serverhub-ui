@@ -63,7 +63,8 @@ You are a specialized cron job assistant for a Linux server management system (S
 5. Always add logging to scripts (append to /tmp/ or ~/logs/)
 6. When modifying existing scripts, output the complete updated version
 7. Respond concisely in Chinese
-8. When providing optimization suggestions, output a \`suggestions\` code block:
+8. **创建定时任务时，必须使用 \`setup_scheduled_task\` 工具一体化完成**（自动处理：验证→写脚本→设权限→语法检查→写入crontab→回读验证）。不要分步调用多个 cron 工具。
+9. When providing optimization suggestions, output a \`suggestions\` code block:
 
 \`\`\`suggestions
 ["选项一", "选项二", "选项三"]
@@ -83,6 +84,7 @@ const PROMPT_STORAGE_KEY = 'serverhub-cron-agent-prompt'
 
 export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronAgentPanelProps) {
   void useServerStore(s => s.selectedServerId)
+  const qc = useQueryClient()
 
   // Prompt 配置
   const defaultPrompt = buildPageContext(currentUsername, existingJobs)
@@ -126,6 +128,11 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
         setScriptOriginal(content)
       }
     },
+    onCronUpdated: () => {
+      // AI 工具执行了 cron 写操作后自动刷新任务列表
+      qc.invalidateQueries({ queryKey: ['cron'] })
+      toast.success('定时任务列表已刷新')
+    },
   })
 
   const [scriptContent, setScriptContent] = useState('')
@@ -151,7 +158,6 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
 
   // ── 对话历史 ──────────────────────────────────────────────────────────────
   const [showHistory, setShowHistory] = useState(false)
-  const queryClient = useQueryClient()
 
   interface ConversationItem {
     id: string
@@ -243,8 +249,8 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
     setScriptRegistry([])
     setActiveScriptId(null)
     setShowHistory(false)
-    queryClient.invalidateQueries({ queryKey: ['cron-conversations'] })
-  }, [clearMessages, queryClient])
+    qc.invalidateQueries({ queryKey: ['cron-conversations'] })
+  }, [clearMessages, qc])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -256,10 +262,10 @@ export function CronAgentPanel({ onClose, currentUsername, existingJobs }: CronA
   const prevStreamingRef = useRef(isStreaming)
   useEffect(() => {
     if (prevStreamingRef.current && !isStreaming) {
-      queryClient.invalidateQueries({ queryKey: ['cron-conversations'] })
+      qc.invalidateQueries({ queryKey: ['cron-conversations'] })
     }
     prevStreamingRef.current = isStreaming
-  }, [isStreaming, queryClient])
+  }, [isStreaming, qc])
 
   const handleSend = useCallback(async () => {
     const text = input.trim()
