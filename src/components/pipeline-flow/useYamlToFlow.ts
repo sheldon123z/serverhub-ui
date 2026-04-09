@@ -8,7 +8,7 @@ const NODE_WIDTH = 180
 const NODE_HEIGHT = 52
 const CONDITION_SIZE = 142
 
-function parseStepsJson(raw: string | null | undefined): StepDefinition[] {
+export function parseStepsJson(raw: string | null | undefined): StepDefinition[] {
   if (!raw) return []
   try {
     const parsed = JSON.parse(raw)
@@ -23,7 +23,7 @@ interface FlowResult {
   edges: Edge[]
 }
 
-function buildFlowElements(steps: StepDefinition[]): FlowResult {
+export function buildFlowElements(steps: StepDefinition[]): FlowResult {
   if (steps.length === 0) return { nodes: [], edges: [] }
 
   const nodes: Node[] = []
@@ -159,7 +159,7 @@ function buildFlowElements(steps: StepDefinition[]): FlowResult {
   return { nodes, edges }
 }
 
-function applyDagreLayout(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
+export function applyDagreLayout(nodes: Node[], edges: Edge[]): { nodes: Node[]; edges: Edge[] } {
   const g = new dagre.graphlib.Graph()
   g.setDefaultEdgeLabel(() => ({}))
   g.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 70, marginx: 20, marginy: 20 })

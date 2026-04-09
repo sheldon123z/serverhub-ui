@@ -21,7 +21,7 @@ const STATUS_BADGE: Record<string, { bg: string; icon: string }> = {
   failed: { bg: 'bg-[#ef4444]', icon: 'ti-x' },
 }
 
-export const ConditionNode = memo(function ConditionNode({ data }: NodeProps) {
+export const ConditionNode = memo(function ConditionNode({ data, selected }: NodeProps) {
   const d = data as ConditionNodeData
   const status = d.runStatus
   const isPendingOrSkipped = status === 'pending' || status === 'skipped'
@@ -47,7 +47,7 @@ export const ConditionNode = memo(function ConditionNode({ data }: NodeProps) {
           bg-white dark:bg-[#272729]
           rounded-lg
           transition-all duration-300
-          ${ring}
+          ${selected ? 'shadow-[0_0_0_2px_#0071e3] scale-[1.02]' : ring}
         `}
         style={{
           boxShadow: ring ? undefined : '0 2px 12px rgba(0,0,0,0.08)',

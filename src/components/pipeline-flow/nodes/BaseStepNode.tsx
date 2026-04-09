@@ -21,7 +21,7 @@ const STATUS_BADGE: Record<string, { bg: string; icon: string }> = {
   failed: { bg: 'bg-[#ef4444]', icon: 'ti-x' },
 }
 
-export const BaseStepNode = memo(function BaseStepNode({ data }: NodeProps) {
+export const BaseStepNode = memo(function BaseStepNode({ data, selected }: NodeProps) {
   const d = data as BaseStepNodeData
   const accent = STEP_ACCENT[d.type] ?? '#6b7280'
   const icon = STEP_ICON[d.type] ?? 'ti-point'
@@ -36,8 +36,8 @@ export const BaseStepNode = memo(function BaseStepNode({ data }: NodeProps) {
       className={`
         relative w-[180px] rounded-lg bg-white dark:bg-[#272729]
         transition-all duration-300
-        ${ring}
-        ${isPendingOrSkipped ? 'opacity-50' : ''}
+        ${selected ? 'shadow-[0_0_0_2px_#0071e3] scale-[1.02]' : ring}
+        ${isPendingOrSkipped && !selected ? 'opacity-50' : ''}
       `}
       style={{
         boxShadow: ring ? undefined : '0 2px 12px rgba(0,0,0,0.08)',

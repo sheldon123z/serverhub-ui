@@ -825,6 +825,13 @@ export default function PipelinesPage() {
                   <PipelineFlowView
                     pipeline={selectedPipeline}
                     stepEvents={activeRunId ? stepEvents : undefined}
+                    editable={!activeRunId}
+                    editorContent={editorContent}
+                    onEditorContentChange={(yaml) => {
+                      setEditorContent(yaml)
+                      setEditorDirty(true)
+                    }}
+                    onDirtyChange={(d) => { if (d) setEditorDirty(true) }}
                   />
                 </Suspense>
               )}

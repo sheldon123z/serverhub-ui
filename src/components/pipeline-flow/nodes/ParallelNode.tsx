@@ -21,7 +21,7 @@ const STATUS_BADGE: Record<string, { bg: string; icon: string }> = {
   failed: { bg: 'bg-[#ef4444]', icon: 'ti-x' },
 }
 
-export const ParallelNode = memo(function ParallelNode({ data }: NodeProps) {
+export const ParallelNode = memo(function ParallelNode({ data, selected }: NodeProps) {
   const d = data as ParallelNodeData
   const status = d.runStatus
   const isPendingOrSkipped = status === 'pending' || status === 'skipped'
@@ -34,8 +34,8 @@ export const ParallelNode = memo(function ParallelNode({ data }: NodeProps) {
       className={`
         relative w-[180px] rounded-lg bg-white dark:bg-[#272729]
         transition-all duration-300
-        ${ring}
-        ${isPendingOrSkipped ? 'opacity-50' : ''}
+        ${selected ? 'shadow-[0_0_0_2px_#0071e3] scale-[1.02]' : ring}
+        ${isPendingOrSkipped && !selected ? 'opacity-50' : ''}
       `}
       style={{
         boxShadow: ring
