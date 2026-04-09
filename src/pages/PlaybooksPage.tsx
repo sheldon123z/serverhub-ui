@@ -134,7 +134,7 @@ function PlaybooksTab() {
   const { data: playbooks = [], isLoading } = useQuery<Playbook[]>({
     queryKey: ['playbooks', filterCategory],
     queryFn: async () => {
-      const res = await client.get('/api/playbooks', { params: filterCategory ? { category: filterCategory } : {} })
+      const res = await client.get('/api/playbooks/', { params: filterCategory ? { category: filterCategory } : {} })
       return Array.isArray(res.data) ? res.data : res.data?.playbooks ?? []
     },
   })
@@ -455,7 +455,7 @@ function CreatePlaybookModal({ onClose }: { onClose: () => void }) {
   })
 
   const createMut = useMutation({
-    mutationFn: () => client.post('/api/playbooks', form),
+    mutationFn: () => client.post('/api/playbooks/', form),
     onSuccess: () => {
       toast.success('剧本已创建')
       queryClient.invalidateQueries({ queryKey: ['playbooks'] })
