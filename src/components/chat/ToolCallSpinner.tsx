@@ -7,6 +7,7 @@
  * - 工具名轮转显示
  * - 已用时间计时器
  * - 已完成工具数 / 总工具数进度
+ * - 细进度条
  */
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Wrench, Check } from 'lucide-react'
@@ -17,39 +18,38 @@ import type { ToolCallItem } from '@/types/agent'
 // ── Braille spinner 字符序列（和 Claude Code 一样的旋转方向）──
 const SPINNER_CHARS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 
-// ── 运维场景动词列表（中英混合，偏运维/AI 风格）──
-const SPINNER_VERBS = [
-  'Analyzing',
-  'Inspecting',
-  'Diagnosing',
-  'Investigating',
-  'Scanning',
-  'Probing',
-  'Querying',
-  'Computing',
-  'Processing',
-  'Orchestrating',
-  'Synthesizing',
-  'Evaluating',
-  'Optimizing',
-  'Resolving',
-  'Monitoring',
-  'Deploying',
-  'Configuring',
-  'Verifying',
-  'Assembling',
-  'Calibrating',
-  'Bootstrapping',
-  'Compiling',
-  'Indexing',
-  'Navigating',
-  'Streaming',
-  'Deciphering',
-  'Correlating',
-  'Mapping',
-  'Tracing',
-  'Profiling',
-]
+// ── 工具类型 → 语境化动词映射 ──
+const TOOL_VERB_MAP: Record<string, string[]> = {
+  // 系统查询类
+  get_system_info: ['Scanning system', 'Inspecting metrics', 'Reading vitals'],
+  get_system_snapshot: ['Scanning system', 'Collecting metrics', 'Profiling system'],
+  get_docker_status: ['Checking containers', 'Inspecting Docker', 'Scanning services'],
+  list_active_alerts: ['Checking alerts', 'Scanning warnings', 'Reviewing alarms'],
+  get_service_status: ['Checking services', 'Inspecting daemons', 'Probing status'],
+  get_network_info: ['Scanning network', 'Probing connectivity', 'Mapping routes'],
+  get_gpu_info: ['Reading GPU stats', 'Probing accelerator', 'Scanning GPU'],
+  // 文件操作类
+  read_file: ['Reading file', 'Loading content', 'Fetching data'],
+  write_file: ['Writing file', 'Saving changes', 'Persisting data'],
+  edit_file: ['Editing file', 'Patching content', 'Applying diff'],
+  list_directory: ['Browsing files', 'Listing directory', 'Scanning folder'],
+  // Shell 执行类
+  run_shell: ['Executing command', 'Running shell', 'Processing command'],
+  run_shell_command: ['Executing command', 'Running shell', 'Processing command'],
+  // 用户管理类
+  get_user_info: ['Looking up user', 'Checking account', 'Fetching profile'],
+  list_users: ['Listing users', 'Scanning accounts', 'Enumerating users'],
+  // 通知类
+  send_notification: ['Sending notification', 'Dispatching alert', 'Broadcasting message'],
+  // 默认（匹配不到时使用）
+  _default: ['Processing', 'Working', 'Analyzing', 'Computing', 'Evaluating',
+             'Orchestrating', 'Synthesizing', 'Investigating', 'Resolving', 'Calibrating'],
+}
+
+function getContextualVerb(toolName: string): string {
+  const verbs = TOOL_VERB_MAP[toolName] ?? TOOL_VERB_MAP._default
+  return verbs[Math.floor(Math.random() * verbs.length)]
+}
 
 // ── Shimmer 效果：高亮字符在文字上扫过 ──
 function ShimmerText({
@@ -125,14 +125,25 @@ export function ToolCallSpinner({
     return () => clearInterval(id)
   }, [])
 
-  // ── 随机动词（mount 时选定）──
-  const [verb] = useState(() => SPINNER_VERBS[Math.floor(Math.random() * SPINNER_VERBS.length)])
-
   // ── 当前显示的工具（轮转，每 2s 切换）──
   const displayToolIndex = useMemo(() => {
     if (activeToolCalls.length === 0) return -1
     return Math.floor(tick / 40) % activeToolCalls.length // 40 ticks = 2s
   }, [tick, activeToolCalls.length])
+
+  // ── 语境化动词（根据当前工具类型选择）──
+  const [verb, setVerb] = useState(() =>
+    getContextualVerb(activeToolCalls[0]?.name ?? '')
+  )
+  const prevToolRef = useRef(activeToolCalls[0]?.name ?? '')
+
+  useEffect(() => {
+    const currentTool = activeToolCalls[displayToolIndex]
+    if (currentTool && currentTool.name !== prevToolRef.current) {
+      prevToolRef.current = currentTool.name
+      setVerb(getContextualVerb(currentTool.name))
+    }
+  }, [displayToolIndex, activeToolCalls])
 
   const currentTool = activeToolCalls[displayToolIndex] ?? activeToolCalls[0]
 
@@ -223,6 +234,16 @@ export function ToolCallSpinner({
           <div className="mt-1 flex items-center gap-1 text-xs text-green animate-in fade-in slide-in-from-left-1 duration-300">
             <Check size={11} />
             <span>Tool completed</span>
+          </div>
+        )}
+
+        {/* 细进度条 */}
+        {totalCount > 0 && (
+          <div className="mt-2 h-0.5 bg-border/50 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-accent/60 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }}
+            />
           </div>
         )}
       </div>

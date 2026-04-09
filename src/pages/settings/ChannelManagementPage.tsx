@@ -63,7 +63,7 @@ function ChannelConfigForm({
  * 提供渠道 CRUD、连通性测试和发送历史查看
  * 路由: /settings/channels
  */
-export default function ChannelManagementPage() {
+export default function ChannelManagementPage({ embedded }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
@@ -139,7 +139,7 @@ export default function ChannelManagementPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">通知渠道</h2>
+        {!embedded && <h2 className="text-lg font-semibold">通知渠道</h2>}
         {!showAdd && (
           <button
             onClick={() => setShowAdd(true)}

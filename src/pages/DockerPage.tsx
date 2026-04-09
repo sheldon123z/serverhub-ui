@@ -285,11 +285,11 @@ export default function DockerPage() {
             清理资源
           </button>
           {pruneOpen && (
-            <div className="absolute right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 py-1 w-36">
+            <div className="absolute right-0 mt-1 glass rounded-lg shadow-lg z-10 py-1 w-36">
               {PRUNE_TYPES.map((p) => (
                 <button
                   key={p.value}
-                  className="w-full text-left px-3 py-2 text-sm text-text hover:bg-bg2 disabled:opacity-50"
+                  className="w-full text-left px-3 py-2 text-sm text-text hover:bg-card disabled:opacity-50"
                   disabled={pruneMut.isPending}
                   onClick={() => {
                     pruneMut.mutate(p.value)

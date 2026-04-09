@@ -205,7 +205,7 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 
 /* ---------- main page ---------- */
 
-export default function RolesPage() {
+export default function RolesPage({ embedded }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const [activeTab, setActiveTab] = useState<TabKey>('roles')
   const [showModal, setShowModal] = useState(false)

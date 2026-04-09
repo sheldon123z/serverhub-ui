@@ -39,23 +39,21 @@ function ActionBar({
   return (
     <div
       className={cn(
-        'absolute -top-8 right-0 flex items-center gap-1',
-        'rounded-md bg-card/90 border border-border px-1.5 py-0.5',
+        'flex items-center gap-1 mt-1',
         'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
-        'pointer-events-none group-hover:pointer-events-auto',
-        'z-10 text-xs',
+        'text-xs',
       )}
     >
-      <button onClick={onCopy} className="hover:text-accent px-1.5 py-0.5 text-text2" title="复制">
+      <button onClick={onCopy} className="hover:text-accent px-1.5 py-0.5 text-text3" title="复制">
         复制
       </button>
       {onResend && (
-        <button onClick={onResend} className="hover:text-accent px-1.5 py-0.5 text-text2" title="重发">
+        <button onClick={onResend} className="hover:text-accent px-1.5 py-0.5 text-text3" title="重发">
           重发
         </button>
       )}
       {onDelete && (
-        <button onClick={onDelete} className="hover:text-red px-1.5 py-0.5 text-text2" title="删除">
+        <button onClick={onDelete} className="hover:text-red px-1.5 py-0.5 text-text3" title="删除">
           删除
         </button>
       )}
@@ -87,8 +85,7 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
   if (role === 'user') {
     return (
       <div className="flex justify-end">
-        <div className="group relative max-w-[85%]">
-          <ActionBar onCopy={handleCopy} onDelete={handleDelete} onResend={handleResend} />
+        <div className="group max-w-[85%]">
           <div
             className={cn(
               'rounded-xl rounded-br-sm px-4 py-2.5',
@@ -97,6 +94,9 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
             )}
           >
             {content}
+          </div>
+          <div className="flex justify-end">
+            <ActionBar onCopy={handleCopy} onDelete={handleDelete} onResend={handleResend} />
           </div>
         </div>
       </div>
@@ -107,8 +107,7 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
   if (role === 'assistant') {
     return (
       <div className="flex justify-start">
-        <div className="group relative max-w-[85%]">
-          <ActionBar onCopy={handleCopy} onDelete={handleDelete} />
+        <div className="group max-w-[85%]">
           <div
             className={cn(
               'rounded-xl rounded-bl-sm px-4 py-2.5',
@@ -127,6 +126,7 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
               <MarkdownContent content={content} />
             )}
           </div>
+          <ActionBar onCopy={handleCopy} onDelete={handleDelete} onResend={handleResend} />
         </div>
       </div>
     )
@@ -153,14 +153,14 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
 
     return (
       <div className="flex justify-start">
-        <div className="group relative max-w-[95%]">
-          <ActionBar onCopy={handleCopy} onDelete={handleDelete} />
+        <div className="group max-w-[95%]">
           <UIComponentErrorBoundary componentId={(message.data?.id as string) ?? 'unknown'}>
             <UICard
               component={message.data as UIComponentMessage['data']}
               onAction={handleUIAction}
             />
           </UIComponentErrorBoundary>
+          <ActionBar onCopy={handleCopy} onDelete={handleDelete} />
         </div>
       </div>
     )

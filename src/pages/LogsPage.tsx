@@ -242,7 +242,7 @@ export default function LogsPage() {
                     setSearchPattern('')
                   }}
                   className={cn(
-                    'w-full text-left px-3 py-2 border-b border-border/50 hover:bg-bg2/50 transition-colors',
+                    'w-full text-left px-3 py-2 border-b border-border/50 hover:bg-card/50 transition-colors',
                     selectedFile === f.path && 'bg-accent-dim'
                   )}
                 >
@@ -307,7 +307,7 @@ export default function LogsPage() {
                     setActiveSearch('')
                     setSearchPattern('')
                   }}
-                  className="px-3 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-bg2"
+                  className="px-3 py-1.5 rounded-md text-sm border border-border text-text2 hover:bg-card"
                 >
                   清除
                 </button>

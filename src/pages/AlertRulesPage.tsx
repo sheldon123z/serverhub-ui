@@ -191,7 +191,7 @@ function RuleFormModal({
   )
 }
 
-export default function AlertRulesPage() {
+export default function AlertRulesPage({ embedded }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const [editRule, setEditRule] = useState<AlertRule | null | false>(false) // false=closed, null=new
 
@@ -235,15 +235,17 @@ export default function AlertRulesPage() {
   const rules = data?.rules ?? []
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className={embedded ? 'space-y-6' : 'p-6 max-w-7xl mx-auto space-y-6'}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/alerts" className="text-text3 hover:text-text transition-colors">
-            <ArrowLeft size={18} />
-          </Link>
-          <AlertTriangle size={20} className="text-yellow" />
-          <h1 className="text-xl font-semibold text-text">告警规则管理</h1>
+          {!embedded && (
+            <Link to="/alerts" className="text-text3 hover:text-text transition-colors">
+              <ArrowLeft size={18} />
+            </Link>
+          )}
+          {!embedded && <AlertTriangle size={20} className="text-yellow" />}
+          {!embedded && <h1 className="text-xl font-semibold text-text">告警规则管理</h1>}
           <span className="text-text3 text-sm">({rules.length} 条规则)</span>
         </div>
         <button

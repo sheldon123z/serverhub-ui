@@ -41,7 +41,12 @@ export const changelogApi = {
     operator?: string
     limit?: number
   }) =>
-    client.get('/api/changelog/events', { params }).then((r) => r.data as ChangeEvent[]),
+    client.get('/api/changelog/events', { params }).then((r) => {
+      const raw = r.data
+      if (Array.isArray(raw)) return raw as ChangeEvent[]
+      if (Array.isArray(raw?.items)) return raw.items as ChangeEvent[]
+      return [] as ChangeEvent[]
+    }),
 
   createEvent: (data: Omit<ChangeEvent, 'id'>) =>
     client.post('/api/changelog/events', data).then((r) => r.data),

@@ -158,13 +158,16 @@ export function ChatPanel() {
 
     // User or assistant message
     if (msg.role === 'user' || msg.role === 'assistant') {
+      const hasContent = msg.content && msg.content.trim().length > 0
       return (
         <div key={msg._id} className="px-3">
-          <MessageBubble
-            message={msg}
-            onDelete={handleDelete}
-            onResend={msg.role === 'user' ? handleResend : undefined}
-          />
+          {hasContent && (
+            <MessageBubble
+              message={msg}
+              onDelete={handleDelete}
+              onResend={handleResend}
+            />
+          )}
           {/* Tool calls — MessageGroup 折叠包裹 */}
           {hasToolCalls(pm) && (() => {
             const regularToolCalls = pm.toolCalls.filter(tc => !tc.args?.subagent_type)

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 // 静态 fallback — 当 /api/sidebar 不可用时使用
 const FALLBACK_ITEMS: SidebarItem[] = [
   { name: 'dashboard', display_name: '仪表盘', icon: 'dashboard', category: '监控', required_role: 'user', order: 1 },
+  { name: 'alerts', display_name: '告警管理', icon: 'bell-ringing', category: '监控', required_role: 'admin', order: 4 },
   { name: 'servers', display_name: '服务器', icon: 'server-2', category: '基础设施', required_role: 'admin', order: 2 },
   { name: 'fleet', display_name: '舰队总览', icon: 'topology-ring-3', category: '基础设施', required_role: 'admin', order: 3 },
   { name: 'agents', display_name: 'OpsAgent', icon: 'robot', category: '智能', required_role: 'user', order: 5 },
@@ -26,7 +27,6 @@ const FALLBACK_ITEMS: SidebarItem[] = [
   { name: 'settings', display_name: '系统设置', icon: 'settings', category: '系统', required_role: 'admin', order: 40 },
   { name: 'audit', display_name: '审计日志', icon: 'list-search', category: '系统', required_role: 'admin', order: 41 },
   { name: 'panel_users', display_name: '面板用户', icon: 'user-cog', category: '系统', required_role: 'admin', order: 42 },
-  { name: 'settings/roles', display_name: '权限管理', icon: 'shield-lock', category: '系统', required_role: 'admin', order: 43 },
 ]
 
 /**
@@ -51,10 +51,14 @@ export default function Sidebar() {
     retry: false,
   })
 
+  // 已合并到系统设置页的条目，从侧边栏隐藏
+  const HIDDEN_ITEMS = new Set(['settings/roles'])
+
   // 使用 API 数据，失败则 fallback 到静态列表（按角色过滤）
-  const items = apiItems ?? FALLBACK_ITEMS.filter(
+  const rawItems = apiItems ?? FALLBACK_ITEMS.filter(
     (item) => item.required_role === 'user' || user?.role === 'admin'
   )
+  const items = rawItems.filter((item) => !HIDDEN_ITEMS.has(item.name))
 
   const groups: Record<string, SidebarItem[]> = {}
   for (const item of items) {
