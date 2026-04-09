@@ -6,7 +6,7 @@
  * 右栏: 运行监控面板
  */
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react'
 import { useThemeStore } from '@/stores/themeStore'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -21,6 +21,8 @@ import {
   type RunStatus,
   type StepStatus,
 } from '@/api/pipelines'
+
+const PipelineFlowView = lazy(() => import('@/components/pipeline-flow/PipelineFlowView'))
 
 /* ═══════════════════════════════════════════════════════
    常量 & 辅助
@@ -477,7 +479,7 @@ function MermaidChart({ code }: { code: string }) {
    主页面
    ═══════════════════════════════════════════════════════ */
 
-type DetailTab = 'edit' | 'preview' | 'history'
+type DetailTab = 'edit' | 'preview' | 'visual' | 'history'
 
 export default function PipelinesPage() {
   const queryClient = useQueryClient()
@@ -761,7 +763,7 @@ export default function PipelinesPage() {
               <h2 className="mr-4 truncate text-base font-semibold text-text">
                 {selectedPipeline.display_name || selectedPipeline.name}
               </h2>
-              {(['edit', 'preview', 'history'] as const).map((t) => (
+              {(['edit', 'preview', 'visual', 'history'] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -773,7 +775,7 @@ export default function PipelinesPage() {
                       : 'text-text2 hover:bg-card hover:text-text',
                   )}
                 >
-                  {t === 'edit' ? '编辑' : t === 'preview' ? '预览' : '历史'}
+                  {t === 'edit' ? '编辑' : t === 'preview' ? '预览' : t === 'visual' ? '可视化' : '历史'}
                 </button>
               ))}
               <div className="flex-1" />
@@ -817,6 +819,14 @@ export default function PipelinesPage() {
                     setShowRunModal(true)
                   }}
                 />
+              )}
+              {detailTab === 'visual' && (
+                <Suspense fallback={<div className="flex flex-1 items-center justify-center text-text3 text-sm">加载可视化组件...</div>}>
+                  <PipelineFlowView
+                    pipeline={selectedPipeline}
+                    stepEvents={activeRunId ? stepEvents : undefined}
+                  />
+                </Suspense>
               )}
               {detailTab === 'history' && (
                 <HistoryTab
