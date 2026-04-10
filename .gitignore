@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .superpowers/
+.omc/
+.tech-debt/
+PERFORMANCE_ANALYSIS_*.md
