@@ -114,23 +114,43 @@ export function usePipelineRunSSE(runId: string | null) {
         const messages = [...prev.chatMessages]
         const msgId = evt.message_id ?? evt.tool_call_id ?? evt.event_id
 
-        // 对于增量消息（final=false），更新已有消息而非追加
-        if ((type === 'agent_message' || type === 'chat_message') && !evt.final) {
-          const existingIdx = messages.findIndex((m) => m.message_id === evt.message_id && m.role === (evt.role ?? 'assistant'))
+        // 对于文本消息，按 message_id upsert（不论 final 状态）
+        if (type === 'agent_message' || type === 'chat_message') {
+          const existingIdx = messages.findIndex(
+            (m) => m.message_id === evt.message_id && m.role === (evt.role ?? 'assistant'),
+          )
           if (existingIdx >= 0) {
-            messages[existingIdx] = { ...messages[existingIdx], content: evt.content ?? '', seq: evt.seq }
-            next.chatMessages = messages
-            if (type === 'chat_message') next.isChatStreaming = true
-            return next
+            messages[existingIdx] = {
+              ...messages[existingIdx],
+              content: evt.content ?? '',
+              final: evt.final ?? true,
+              seq: evt.seq,
+            }
+          } else {
+            messages.push({
+              id: evt.event_id,
+              message_id: evt.message_id ?? msgId,
+              event_type: type,
+              role: evt.role ?? 'assistant',
+              content: evt.content ?? '',
+              final: evt.final ?? true,
+              step_id: evt.step_id,
+              seq: evt.seq,
+            })
           }
+          next.chatMessages = messages
+          if (type === 'chat_message') {
+            next.isChatStreaming = !evt.final
+          }
+          return next
         }
 
-        // 追加新消息
+        // 工具调用/结果：直接追加
         messages.push({
           id: evt.event_id,
           message_id: evt.message_id ?? msgId,
           event_type: type,
-          role: evt.role ?? (type.includes('tool_call') ? 'tool_call' : type.includes('tool_result') ? 'tool_result' : 'assistant'),
+          role: type.includes('tool_call') ? 'tool_call' : 'tool_result',
           content: evt.content ?? '',
           final: evt.final ?? true,
           step_id: evt.step_id,
@@ -140,11 +160,6 @@ export function usePipelineRunSSE(runId: string | null) {
           seq: evt.seq,
         })
         next.chatMessages = messages
-
-        // streaming 状态
-        if (type === 'chat_message') {
-          next.isChatStreaming = !evt.final
-        }
         return next
       }
 
@@ -188,16 +203,18 @@ export function usePipelineRunSSE(runId: string | null) {
 
   // SSE 连接
   useEffect(() => {
+    // 每次 runId 变化都重置状态（防止旧 run 数据污染）
+    setState({
+      stepStates: new Map(),
+      chatMessages: [],
+      activeAgentStepId: null,
+      connected: false,
+      completed: false,
+      isChatStreaming: false,
+    })
+    lastSeqRef.current = 0
+
     if (!runId) {
-      setState({
-        stepStates: new Map(),
-        chatMessages: [],
-        activeAgentStepId: null,
-        connected: false,
-        completed: false,
-        isChatStreaming: false,
-      })
-      lastSeqRef.current = 0
       return
     }
 
@@ -208,57 +225,88 @@ export function usePipelineRunSSE(runId: string | null) {
       // 1. Hydrate from history
       await hydrateFromHistory(runId)
 
-      // 2. Connect SSE
-      try {
-        const response = await fetch(`/api/pipelines/runs/${runId}/stream`, {
-          credentials: 'include',
-          signal: controller.signal,
-        })
-        if (!response.ok || !response.body) return
+      // 2. Connect SSE with retry
+      let retryCount = 0
+      const MAX_RETRIES = 10
+      const BASE_DELAY = 1000
 
-        setState((s) => ({ ...s, connected: true }))
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-        let currentEvent = ''
+      while (!controller.signal.aborted && retryCount < MAX_RETRIES) {
+        try {
+          const response = await fetch(`/api/pipelines/runs/${runId}/stream`, {
+            credentials: 'include',
+            signal: controller.signal,
+          })
+          if (!response.ok || !response.body) {
+            throw new Error(`SSE response ${response.status}`)
+          }
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          buffer += decoder.decode(value, { stream: true })
+          setState((s) => ({ ...s, connected: true }))
+          retryCount = 0 // 成功连接后重置计数
+          const reader = response.body.getReader()
+          const decoder = new TextDecoder()
+          let buffer = ''
+          let currentEvent = ''
+          let dataLines: string[] = []
 
-          const lines = buffer.split('\n')
-          buffer = lines.pop() ?? ''
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            buffer += decoder.decode(value, { stream: true })
 
-          for (const line of lines) {
-            const trimmed = line.trim()
-            if (!trimmed) {
-              currentEvent = ''
-              continue
-            }
-            if (trimmed.startsWith('event:')) {
-              currentEvent = trimmed.slice(6).trim()
-              continue
-            }
-            if (!trimmed.startsWith('data:')) continue
+            const lines = buffer.split('\n')
+            buffer = lines.pop() ?? ''
 
-            const dataStr = trimmed.slice(5).trim()
-            if (!dataStr) continue
-            try {
-              const data = JSON.parse(dataStr) as PipelineSSEEvent
-              // 用 currentEvent 覆盖 type（SSE event 字段优先）
-              if (currentEvent) data.type = currentEvent as PipelineSSEEvent['type']
-              dispatchEvent(data)
-            } catch {
-              // ignore invalid JSON
+            for (const line of lines) {
+              const trimmed = line.trim()
+
+              // 空行 = 事件分隔符，处理累积的 data
+              if (!trimmed) {
+                if (dataLines.length > 0) {
+                  const fullData = dataLines.join('\n')
+                  try {
+                    const data = JSON.parse(fullData) as PipelineSSEEvent
+                    if (currentEvent) data.type = currentEvent as PipelineSSEEvent['type']
+                    dispatchEvent(data)
+                  } catch {
+                    // ignore invalid JSON
+                  }
+                }
+                currentEvent = ''
+                dataLines = []
+                continue
+              }
+
+              if (trimmed.startsWith('event:')) {
+                currentEvent = trimmed.slice(6).trim()
+                continue
+              }
+              if (trimmed.startsWith('data:')) {
+                dataLines.push(trimmed.slice(5).trim())
+              }
             }
           }
+
+          // Stream ended normally (pipeline complete) — don't retry
+          break
+        } catch (err) {
+          if (err instanceof DOMException && err.name === 'AbortError') return
+
+          retryCount++
+          setState((s) => ({ ...s, connected: false }))
+
+          if (retryCount >= MAX_RETRIES) break
+
+          // Exponential backoff with jitter
+          const delay = Math.min(BASE_DELAY * 2 ** (retryCount - 1), 30000)
+          const jitter = delay * 0.2 * Math.random()
+          await new Promise((r) => setTimeout(r, delay + jitter))
+
+          // Rehydrate to fill gap
+          await hydrateFromHistory(runId)
         }
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return
-      } finally {
-        setState((s) => ({ ...s, connected: false }))
       }
+
+      setState((s) => ({ ...s, connected: false }))
     }
 
     run()
