@@ -1,23 +1,17 @@
 /**
- * MessageBubble — renders a single chat message with role-specific styling
- * and hover action bar (copy / delete / resend).
+ * MessageBubble — store-aware wrapper around PureMessageBubble.
  *
- * Tool calls, tool results, and approvals are now rendered by ChatPanel
- * via ToolCallBox and ToolApprovalInterrupt respectively.
+ * Injects streaming state from useChatStore and handles UI component messages.
+ * The pure rendering logic lives in components/chat/PureMessageBubble.tsx.
  */
 
-import React, { useCallback } from 'react'
-import toast from 'react-hot-toast'
-import { cn } from '@/lib/utils'
+import React from 'react'
 import type { ChatMessage, UIComponentMessage } from '@/types/agent'
 import { isUIComponentMessage } from '@/lib/message-utils'
-import { useStreamingText } from '@/hooks/useStreamingText'
-import { MarkdownContent } from './MarkdownContent'
+import { PureMessageBubble } from '@/components/chat/PureMessageBubble'
 import { UICard } from '@/components/agent/UICard'
 import { UIComponentErrorBoundary } from '@/components/agent/UIComponentErrorBoundary'
 import { useChatStore } from '@/stores/chatStore'
-
-/* ── Props ──────────────────────────────────────────── */
 
 interface MessageBubbleProps {
   message: ChatMessage
@@ -25,115 +19,12 @@ interface MessageBubbleProps {
   onResend?: (content: string, id: string) => void
 }
 
-/* ── Sub-components ─────────────────────────────────── */
-
-function ActionBar({
-  onCopy,
-  onDelete,
-  onResend,
-}: {
-  onCopy: () => void
-  onDelete?: () => void
-  onResend?: () => void
-}) {
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-1 mt-1',
-        'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
-        'text-xs',
-      )}
-    >
-      <button onClick={onCopy} className="hover:text-accent px-1.5 py-0.5 text-text3" title="复制">
-        复制
-      </button>
-      {onResend && (
-        <button onClick={onResend} className="hover:text-accent px-1.5 py-0.5 text-text3" title="重发">
-          重发
-        </button>
-      )}
-      {onDelete && (
-        <button onClick={onDelete} className="hover:text-red px-1.5 py-0.5 text-text3" title="删除">
-          删除
-        </button>
-      )}
-    </div>
-  )
-}
-
-/* ── Main component ─────────────────────────────────── */
-
 export const MessageBubble = React.memo(function MessageBubble({ message, onDelete, onResend }: MessageBubbleProps) {
-  const { role, content, _id } = message
-
-  // Streaming state (hooks must be at top level)
   const streamingMessageId = useChatStore((s) => s.streamingMessageId)
-  const isCurrentlyStreaming = role === 'assistant' && _id === streamingMessageId
-  const { displayedContent, isAnimating } = useStreamingText(content, {
-    enabled: isCurrentlyStreaming,
-    segmentDelay: 12,
-  })
+  const isStreaming = message.role === 'assistant' && message._id === streamingMessageId
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(content).then(() => toast.success('已复制')).catch(() => toast.error('复制失败'))
-  }, [content])
-
-  const handleDelete = onDelete ? () => onDelete(_id) : undefined
-  const handleResend = onResend ? () => onResend(content, _id) : undefined
-
-  /* ── User message ─────────────────────────────── */
-  if (role === 'user') {
-    return (
-      <div className="flex justify-end">
-        <div className="group max-w-[85%]">
-          <div
-            className={cn(
-              'rounded-xl rounded-br-sm px-4 py-2.5',
-              'bg-accent text-[#0f172a]',
-              'text-sm leading-relaxed whitespace-pre-wrap break-words',
-            )}
-          >
-            {content}
-          </div>
-          <div className="flex justify-end">
-            <ActionBar onCopy={handleCopy} onDelete={handleDelete} onResend={handleResend} />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  /* ── Assistant message ────────────────────────── */
-  if (role === 'assistant') {
-    return (
-      <div className="flex justify-start">
-        <div className="group max-w-[85%]">
-          <div
-            className={cn(
-              'rounded-xl rounded-bl-sm px-4 py-2.5',
-              'glass',
-              'text-sm leading-relaxed',
-            )}
-          >
-            {isCurrentlyStreaming ? (
-              <>
-                <span className="whitespace-pre-wrap">{displayedContent}</span>
-                {isAnimating && (
-                  <span className="inline-block w-1.5 h-4 bg-accent/60 ml-0.5 animate-pulse rounded-sm align-text-bottom" />
-                )}
-              </>
-            ) : (
-              <MarkdownContent content={content} />
-            )}
-          </div>
-          <ActionBar onCopy={handleCopy} onDelete={handleDelete} onResend={handleResend} />
-        </div>
-      </div>
-    )
-  }
-
-  /* ── UI Component ─────────────────────────────── */
-  if (role === 'ui_component' && isUIComponentMessage(message)) {
+  // UI Component messages — keep store-dependent logic here
+  if (message.role === 'ui_component' && isUIComponentMessage(message)) {
     const handleUIAction = (actionId: string, payload?: Record<string, unknown>) => {
       fetch('/api/agents/ui/action', {
         method: 'POST',
@@ -160,18 +51,18 @@ export const MessageBubble = React.memo(function MessageBubble({ message, onDele
               onAction={handleUIAction}
             />
           </UIComponentErrorBoundary>
-          <ActionBar onCopy={handleCopy} onDelete={handleDelete} />
         </div>
       </div>
     )
   }
 
-  /* ── Fallback ─────────────────────────────────── */
+  // Delegate to pure renderer
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[85%] glass rounded-lg px-3 py-2 text-sm text-text2">
-        {content}
-      </div>
-    </div>
+    <PureMessageBubble
+      message={message}
+      isStreaming={isStreaming}
+      onDelete={onDelete}
+      onResend={onResend}
+    />
   )
 })

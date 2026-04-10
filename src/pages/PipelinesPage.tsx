@@ -23,6 +23,7 @@ import {
 } from '@/api/pipelines'
 
 const PipelineFlowView = lazy(() => import('@/components/pipeline-flow/PipelineFlowView'))
+import { PipelineRunPanel } from '@/components/pipeline-run/PipelineRunPanel'
 
 /* ═══════════════════════════════════════════════════════
    常量 & 辅助
@@ -859,19 +860,15 @@ export default function PipelinesPage() {
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <i className="ti ti-player-play text-base text-accent" />
           <span className="text-sm font-semibold text-text">运行监控</span>
-          {sseConnected && (
-            <span className="ml-auto flex items-center gap-1 text-xs text-green">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green" />
-              实时
-            </span>
-          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-hidden">
           {watchRun ? (
-            <RunPanel
+            <PipelineRunPanel
+              runId={watchRun.id}
               run={watchRun}
-              steps={mergedSteps}
+              stepsJson={selectedPipeline?.steps_json ?? '[]'}
+              stepLogs={runLogs}
               onCancel={() => cancelMutation.mutate(watchRun.id)}
               onApprove={() => approveMutation.mutate(watchRun.id)}
               onReject={() => rejectMutation.mutate(watchRun.id)}

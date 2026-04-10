@@ -86,6 +86,60 @@ export interface StepLog {
   duration_ms: number | null
 }
 
+export interface PipelineChatEvent {
+  id: number
+  run_id: string
+  event_id: string
+  seq: number
+  event_type: string
+  step_id: string | null
+  message_id: string | null
+  tool_call_id: string | null
+  role: string | null
+  content: string | null
+  metadata_json: string
+  created_at: string
+}
+
+export type PipelineSSEEventType =
+  | 'step_start'
+  | 'step_complete'
+  | 'step_failed'
+  | 'step_retry'
+  | 'approval_required'
+  | 'agent_start'
+  | 'agent_message'
+  | 'agent_tool_call'
+  | 'agent_tool_result'
+  | 'agent_complete'
+  | 'chat_message'
+  | 'chat_tool_call'
+  | 'chat_tool_result'
+  | 'decision_request'
+  | 'pipeline_complete'
+
+export interface PipelineSSEEvent {
+  event_id: string
+  seq: number
+  timestamp: number
+  type: PipelineSSEEventType
+  step_id?: string
+  message_id?: string
+  tool_call_id?: string
+  role?: string
+  content?: string
+  final?: boolean
+  tool?: string
+  args?: Record<string, unknown>
+  step_name?: string
+  step_type?: string
+  status?: string
+  duration_ms?: number
+  error?: string
+  total_duration?: number
+  summary?: string
+}
+
 export interface ValidationResult {
   valid: boolean
   errors?: string[]
@@ -132,4 +186,13 @@ export const pipelinesApi = {
     client.post<{ ok: true }>(`/api/pipelines/runs/${runId}/reject`),
 
   getRunLogs: (runId: string) => client.get<StepLog[]>(`/api/pipelines/runs/${runId}/logs`),
+
+  // P3-A: Pipeline AI Chat
+  sendChatMessage: (runId: string, message: string) =>
+    client.post<{ ok: true; message: string }>(`/api/pipelines/runs/${runId}/chat`, { message }),
+
+  getChatEvents: (runId: string, afterSeq = 0, limit = 200) =>
+    client.get<PipelineChatEvent[]>(`/api/pipelines/runs/${runId}/chat-events`, {
+      params: { after_seq: afterSeq, limit },
+    }),
 }
