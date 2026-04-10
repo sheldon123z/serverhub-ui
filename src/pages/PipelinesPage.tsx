@@ -24,6 +24,9 @@ import {
 
 const PipelineFlowView = lazy(() => import('@/components/pipeline-flow/PipelineFlowView'))
 import { PipelineRunPanel } from '@/components/pipeline-run/PipelineRunPanel'
+import { AIGenerateModal } from '@/components/pipeline-ai/AIGenerateModal'
+import { AIModifyModal } from '@/components/pipeline-ai/AIModifyModal'
+import { AIReviewPanel } from '@/components/pipeline-ai/AIReviewPanel'
 
 /* ═══════════════════════════════════════════════════════
    常量 & 辅助
@@ -495,6 +498,9 @@ export default function PipelinesPage() {
   const [showRunModal, setShowRunModal] = useState(false)
   const [runParams, setRunParams] = useState<Record<string, string>>({})
   const [watchRunId, setWatchRunId] = useState<string | null>(null)
+  const [showAIGenerate, setShowAIGenerate] = useState(false)
+  const [showAIModify, setShowAIModify] = useState(false)
+  const [showAIReview, setShowAIReview] = useState(false)
 
   // 验证 debounce
   const [validationResult, setValidationResult] = useState<{ valid: boolean; errors?: string[] } | null>(null)
@@ -799,20 +805,36 @@ export default function PipelinesPage() {
             {/* Tab 内容 */}
             <div className="flex-1 overflow-y-auto">
               {detailTab === 'edit' && (
-                <EditTab
-                  content={editorContent}
-                  dirty={editorDirty}
-                  validation={validationResult}
-                  saving={updateMutation.isPending}
-                  onChange={(val) => {
-                    setEditorContent(val)
-                    setEditorDirty(true)
-                    triggerValidation(val)
-                  }}
-                  onSave={() =>
-                    updateMutation.mutate({ id: selectedPipeline.id, yaml: editorContent })
-                  }
-                />
+                <div className="flex h-full">
+                  <div className="flex-1 min-w-0">
+                    <EditTab
+                      content={editorContent}
+                      dirty={editorDirty}
+                      validation={validationResult}
+                      saving={updateMutation.isPending}
+                      onChange={(val) => {
+                        setEditorContent(val)
+                        setEditorDirty(true)
+                        triggerValidation(val)
+                      }}
+                      onSave={() =>
+                        updateMutation.mutate({ id: selectedPipeline.id, yaml: editorContent })
+                      }
+                      onAIGenerate={() => setShowAIGenerate(true)}
+                      onAIModify={() => setShowAIModify(true)}
+                      onAIReview={() => setShowAIReview((v) => !v)}
+                      showAIReview={showAIReview}
+                    />
+                  </div>
+                  {showAIReview && (
+                    <div className="w-[280px] shrink-0">
+                      <AIReviewPanel
+                        yamlContent={editorContent}
+                        onClose={() => setShowAIReview(false)}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
               {detailTab === 'preview' && (
                 <PreviewTab
@@ -895,6 +917,10 @@ export default function PipelinesPage() {
           onClose={() => setShowCreateModal(false)}
           onCreate={(yaml) => createMutation.mutate(yaml)}
           creating={createMutation.isPending}
+          onAIGenerate={() => {
+            setShowCreateModal(false)
+            setShowAIGenerate(true)
+          }}
         />
       )}
 
@@ -908,6 +934,26 @@ export default function PipelinesPage() {
           }
           onClose={() => setShowRunModal(false)}
           running={runMutation.isPending}
+        />
+      )}
+      {showAIGenerate && (
+        <AIGenerateModal
+          onClose={() => setShowAIGenerate(false)}
+          onApply={(yaml) => {
+            setEditorContent(yaml)
+            setEditorDirty(true)
+          }}
+        />
+      )}
+      {showAIModify && (
+        <AIModifyModal
+          currentYaml={editorContent}
+          pipelineName={selectedPipeline?.display_name}
+          onClose={() => setShowAIModify(false)}
+          onApply={(yaml) => {
+            setEditorContent(yaml)
+            setEditorDirty(true)
+          }}
         />
       )}
     </div>
@@ -925,6 +971,10 @@ function EditTab({
   saving,
   onChange,
   onSave,
+  onAIGenerate,
+  onAIModify,
+  onAIReview,
+  showAIReview,
 }: {
   content: string
   dirty: boolean
@@ -932,6 +982,10 @@ function EditTab({
   saving: boolean
   onChange: (val: string) => void
   onSave: () => void
+  onAIGenerate?: () => void
+  onAIModify?: () => void
+  onAIReview?: () => void
+  showAIReview?: boolean
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -951,12 +1005,33 @@ function EditTab({
         <div className="flex-1" />
         <button
           type="button"
-          disabled
-          className="rounded-lg border border-border px-3 py-1.5 text-xs text-text3 opacity-50"
-          title="即将推出"
+          onClick={onAIGenerate}
+          className="rounded-lg border border-border px-3 py-1.5 text-xs text-text hover:border-accent hover:text-accent"
         >
           <i className="ti ti-sparkles mr-1" />
           AI 生成
+        </button>
+        <button
+          type="button"
+          onClick={onAIModify}
+          disabled={!content.trim()}
+          className="rounded-lg border border-border px-3 py-1.5 text-xs text-text hover:border-accent hover:text-accent disabled:opacity-40"
+        >
+          <i className="ti ti-edit mr-1" />
+          AI 修改
+        </button>
+        <button
+          type="button"
+          onClick={onAIReview}
+          disabled={!content.trim()}
+          className={cn(
+            'rounded-lg border px-3 py-1.5 text-xs',
+            showAIReview ? 'border-accent text-accent' : 'border-border text-text hover:border-accent hover:text-accent',
+            !content.trim() && 'opacity-40',
+          )}
+        >
+          <i className="ti ti-search mr-1" />
+          AI 审查
         </button>
         <button
           type="button"
@@ -1349,10 +1424,12 @@ function CreateModal({
   onClose,
   onCreate,
   creating,
+  onAIGenerate,
 }: {
   onClose: () => void
   onCreate: (yaml: string) => void
   creating: boolean
+  onAIGenerate?: () => void
 }) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [customYaml, setCustomYaml] = useState('')
@@ -1443,6 +1520,19 @@ steps:
             >
               <i className="ti ti-plus text-2xl" />
               <span className="text-sm font-medium">空白 Pipeline</span>
+            </button>
+
+            <button
+              key="ai-generate"
+              type="button"
+              onClick={() => {
+                onClose()
+                onAIGenerate?.()
+              }}
+              className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-accent/50 p-4 text-center hover:bg-accent/5"
+            >
+              <i className="ti ti-sparkles text-2xl text-accent" />
+              <span className="text-xs font-medium text-accent">AI 生成</span>
             </button>
           </div>
         </div>
