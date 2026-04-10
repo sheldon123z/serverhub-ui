@@ -54,8 +54,8 @@ interface PipelineRunSSEState {
   completed: boolean
   /** 侧聊 AI 是否正在响应 */
   isChatStreaming: boolean
-  /** 当前待决策请求（decision_request 后、decision_resolved 前） */
-  pendingDecision: PendingDecision | null
+  /** 当前待决策请求 Map（step_id → PendingDecision，支持并行决策） */
+  pendingDecisions: Map<string, PendingDecision>
 }
 
 /* ── Hook ── */
@@ -68,7 +68,7 @@ export function usePipelineRunSSE(runId: string | null) {
     connected: false,
     completed: false,
     isChatStreaming: false,
-    pendingDecision: null,
+    pendingDecisions: new Map(),
   })
 
   const lastSeqRef = useRef(0)
@@ -175,21 +175,25 @@ export function usePipelineRunSSE(runId: string | null) {
 
       // ── 决策事件 ──
       if (type === 'decision_request') {
-        next.pendingDecision = {
+        const decisions = new Map(prev.pendingDecisions)
+        decisions.set(evt.step_id ?? '', {
           decisionRequestId: evt.decision_request_id ?? '',
           stepId: evt.step_id ?? '',
           prompt: evt.content ?? '',
           options: evt.options ?? [],
           context: evt.context,
-          timeout: evt.timeout as number | undefined,
+          timeout: evt.timeout,
           onTimeout: evt.on_timeout,
           source: (evt.source as 'step' | 'ai') ?? 'step',
           requestedAt: evt.timestamp,
-        }
+        })
+        next.pendingDecisions = decisions
         return next
       }
       if (type === 'decision_resolved') {
-        next.pendingDecision = null
+        const decisions = new Map(prev.pendingDecisions)
+        decisions.delete(evt.step_id ?? '')
+        next.pendingDecisions = decisions
         return next
       }
 
@@ -234,7 +238,7 @@ export function usePipelineRunSSE(runId: string | null) {
       connected: false,
       completed: false,
       isChatStreaming: false,
-      pendingDecision: null,
+      pendingDecisions: new Map(),
     })
     lastSeqRef.current = 0
 

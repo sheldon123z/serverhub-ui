@@ -70,7 +70,7 @@ export function PipelineRunPanel({
     activeAgentStepId,
     connected,
     isChatStreaming,
-    pendingDecision,
+    pendingDecisions,
     sendMessage,
     submitDecision,
   } = usePipelineRunSSE(runId)
@@ -197,7 +197,7 @@ export function PipelineRunPanel({
               sseState={stepStates.get(step.id)}
               agentMessages={agentMessagesByStep.get(step.id)}
               isActiveAgent={step.id === activeAgentStepId}
-              pendingDecision={pendingDecision}
+              pendingDecisions={pendingDecisions}
               onSubmitDecision={submitDecision}
               onApprove={onApprove}
               onReject={onReject}

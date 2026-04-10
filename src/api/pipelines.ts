@@ -143,6 +143,7 @@ export interface PipelineSSEEvent {
   decision_request_id?: string
   options?: Array<{ id: string; label: string; description?: string; next_step?: string }>
   context?: string
+  timeout?: number
   on_timeout?: string
   source?: string
 }

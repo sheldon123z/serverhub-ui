@@ -940,8 +940,15 @@ export default function PipelinesPage() {
         <AIGenerateModal
           onClose={() => setShowAIGenerate(false)}
           onApply={(yaml) => {
-            setEditorContent(yaml)
-            setEditorDirty(true)
+            if (selectedPipeline) {
+              // 已有 pipeline 选中 → 更新编辑器内容
+              setEditorContent(yaml)
+              setEditorDirty(true)
+            } else {
+              // 从 CreateModal 进入 → 直接创建
+              createMutation.mutate(yaml)
+            }
+            setShowAIGenerate(false)
           }}
         />
       )}

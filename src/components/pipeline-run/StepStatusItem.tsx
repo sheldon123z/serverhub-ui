@@ -52,7 +52,7 @@ interface StepStatusItemProps {
   sseState?: StepState
   agentMessages?: ChatMessage[]
   isActiveAgent?: boolean
-  pendingDecision?: PendingDecision | null
+  pendingDecisions?: Map<string, PendingDecision>
   onSubmitDecision?: (stepId: string, decisionRequestId: string, optionId: string) => void
   onApprove?: () => void
   onReject?: () => void
@@ -70,7 +70,7 @@ export function StepStatusItem({
   sseState,
   agentMessages,
   isActiveAgent,
-  pendingDecision,
+  pendingDecisions,
   onSubmitDecision,
   onApprove,
   onReject,
@@ -82,7 +82,7 @@ export function StepStatusItem({
   const error = sseState?.error ?? step.error
   const icon = STEP_TYPE_ICON[step.type] ?? 'ti-point'
   const isApprovalWaiting = step.type === 'approval' && status === 'running'
-  const isDecisionWaiting = step.type === 'decision' && pendingDecision?.stepId === step.id
+  const isDecisionWaiting = step.type === 'decision' && !!pendingDecisions?.get(step.id)
   const showAgentChat = step.type === 'agent' && (isActiveAgent || (agentMessages && agentMessages.length > 0))
 
   return (
@@ -144,18 +144,18 @@ export function StepStatusItem({
       )}
 
       {/* Decision card */}
-      {isDecisionWaiting && pendingDecision && (
+      {step.type === 'decision' && pendingDecisions?.get(step.id) && (
         <div className="mt-2 border-t border-border/50 pt-2">
           <PipelineDecisionCard
-            decisionRequestId={pendingDecision.decisionRequestId}
-            prompt={pendingDecision.prompt}
-            options={pendingDecision.options}
-            context={pendingDecision.context}
-            timeout={pendingDecision.timeout}
-            onTimeout={pendingDecision.onTimeout}
-            startedAt={pendingDecision.requestedAt}
+            decisionRequestId={pendingDecisions.get(step.id)!.decisionRequestId}
+            prompt={pendingDecisions.get(step.id)!.prompt}
+            options={pendingDecisions.get(step.id)!.options}
+            context={pendingDecisions.get(step.id)!.context}
+            timeout={pendingDecisions.get(step.id)!.timeout}
+            onTimeout={pendingDecisions.get(step.id)!.onTimeout}
+            startedAt={pendingDecisions.get(step.id)!.requestedAt}
             onDecide={(optionId) =>
-              onSubmitDecision?.(step.id, pendingDecision.decisionRequestId, optionId)
+              onSubmitDecision?.(step.id, pendingDecisions.get(step.id)!.decisionRequestId, optionId)
             }
           />
         </div>
