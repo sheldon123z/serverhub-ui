@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react'
 import { STEP_ACCENT, STEP_ICON, STEP_LABEL } from './nodes'
 
 const STEP_TYPES = [
-  'shell', 'ssh', 'agent', 'approval', 'condition',
+  'shell', 'ssh', 'agent', 'approval', 'decision', 'condition',
   'parallel', 'notify', 'http', 'delay', 'playbook',
 ] as const
 
@@ -11,6 +11,7 @@ const STEP_DESC: Record<string, string> = {
   ssh: 'SSH 远程执行',
   agent: 'AI 智能体执行',
   approval: '人工审批门控',
+  decision: '多选项决策',
   condition: '条件分支',
   parallel: '并行执行',
   notify: '发送通知',

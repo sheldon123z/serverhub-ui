@@ -5,14 +5,17 @@
 
 import { cn } from '@/lib/utils'
 import type { StepStatus } from '@/api/pipelines'
+import type { PendingDecision } from '@/api/pipelines'
 import type { StepState, ChatMessage } from '@/hooks/usePipelineRunSSE'
 import { PipelineAgentChat } from './PipelineAgentChat'
+import { PipelineDecisionCard } from './PipelineDecisionCard'
 
 const STEP_TYPE_ICON: Record<string, string> = {
   shell: 'ti-terminal-2',
   ssh: 'ti-server',
   agent: 'ti-robot',
   approval: 'ti-user-check',
+  decision: 'ti-git-compare',
   condition: 'ti-git-branch',
   parallel: 'ti-arrows-split-2',
   notify: 'ti-bell',
@@ -49,6 +52,8 @@ interface StepStatusItemProps {
   sseState?: StepState
   agentMessages?: ChatMessage[]
   isActiveAgent?: boolean
+  pendingDecision?: PendingDecision | null
+  onSubmitDecision?: (stepId: string, decisionRequestId: string, optionId: string) => void
   onApprove?: () => void
   onReject?: () => void
   approvePending?: boolean
@@ -65,6 +70,8 @@ export function StepStatusItem({
   sseState,
   agentMessages,
   isActiveAgent,
+  pendingDecision,
+  onSubmitDecision,
   onApprove,
   onReject,
   approvePending,
@@ -75,6 +82,7 @@ export function StepStatusItem({
   const error = sseState?.error ?? step.error
   const icon = STEP_TYPE_ICON[step.type] ?? 'ti-point'
   const isApprovalWaiting = step.type === 'approval' && status === 'running'
+  const isDecisionWaiting = step.type === 'decision' && pendingDecision?.stepId === step.id
   const showAgentChat = step.type === 'agent' && (isActiveAgent || (agentMessages && agentMessages.length > 0))
 
   return (
@@ -132,6 +140,24 @@ export function StepStatusItem({
           >
             {rejectPending ? '...' : '拒绝'}
           </button>
+        </div>
+      )}
+
+      {/* Decision card */}
+      {isDecisionWaiting && pendingDecision && (
+        <div className="mt-2 border-t border-border/50 pt-2">
+          <PipelineDecisionCard
+            decisionRequestId={pendingDecision.decisionRequestId}
+            prompt={pendingDecision.prompt}
+            options={pendingDecision.options}
+            context={pendingDecision.context}
+            timeout={pendingDecision.timeout}
+            onTimeout={pendingDecision.onTimeout}
+            startedAt={pendingDecision.requestedAt}
+            onDecide={(optionId) =>
+              onSubmitDecision?.(step.id, pendingDecision.decisionRequestId, optionId)
+            }
+          />
         </div>
       )}
     </div>

@@ -11,7 +11,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { PipelineChatEvent, PipelineSSEEvent, StepStatus } from '@/api/pipelines'
+import type { PipelineChatEvent, PipelineSSEEvent, PendingDecision, StepStatus } from '@/api/pipelines'
 import { pipelinesApi } from '@/api/pipelines'
 
 /* ── Types ── */
@@ -54,6 +54,8 @@ interface PipelineRunSSEState {
   completed: boolean
   /** 侧聊 AI 是否正在响应 */
   isChatStreaming: boolean
+  /** 当前待决策请求（decision_request 后、decision_resolved 前） */
+  pendingDecision: PendingDecision | null
 }
 
 /* ── Hook ── */
@@ -66,6 +68,7 @@ export function usePipelineRunSSE(runId: string | null) {
     connected: false,
     completed: false,
     isChatStreaming: false,
+    pendingDecision: null,
   })
 
   const lastSeqRef = useRef(0)
@@ -170,6 +173,26 @@ export function usePipelineRunSSE(runId: string | null) {
         return next
       }
 
+      // ── 决策事件 ──
+      if (type === 'decision_request') {
+        next.pendingDecision = {
+          decisionRequestId: evt.decision_request_id ?? '',
+          stepId: evt.step_id ?? '',
+          prompt: evt.content ?? '',
+          options: evt.options ?? [],
+          context: evt.context,
+          timeout: evt.timeout as number | undefined,
+          onTimeout: evt.on_timeout,
+          source: (evt.source as 'step' | 'ai') ?? 'step',
+          requestedAt: evt.timestamp,
+        }
+        return next
+      }
+      if (type === 'decision_resolved') {
+        next.pendingDecision = null
+        return next
+      }
+
       return next
     })
   }, [])
@@ -211,6 +234,7 @@ export function usePipelineRunSSE(runId: string | null) {
       connected: false,
       completed: false,
       isChatStreaming: false,
+      pendingDecision: null,
     })
     lastSeqRef.current = 0
 
@@ -331,8 +355,18 @@ export function usePipelineRunSSE(runId: string | null) {
     [runId],
   )
 
+  // 提交决策选择
+  const submitDecision = useCallback(
+    async (stepId: string, decisionRequestId: string, optionId: string) => {
+      if (!runId) return
+      await pipelinesApi.submitDecision(runId, stepId, decisionRequestId, optionId)
+    },
+    [runId],
+  )
+
   return {
     ...state,
     sendMessage,
+    submitDecision,
   }
 }

@@ -17,6 +17,7 @@ export interface StepDefinition {
     | 'playbook'
     | 'agent'
     | 'approval'
+    | 'decision'
     | 'condition'
     | 'parallel'
     | 'notify'
@@ -116,6 +117,7 @@ export type PipelineSSEEventType =
   | 'chat_tool_call'
   | 'chat_tool_result'
   | 'decision_request'
+  | 'decision_resolved'
   | 'pipeline_complete'
 
 export interface PipelineSSEEvent {
@@ -138,11 +140,61 @@ export interface PipelineSSEEvent {
   error?: string
   total_duration?: number
   summary?: string
+  decision_request_id?: string
+  options?: Array<{ id: string; label: string; description?: string; next_step?: string }>
+  context?: string
+  on_timeout?: string
+  source?: string
+}
+
+export interface DecisionOption {
+  id: string
+  label: string
+  description?: string
+  next_step?: string
+}
+
+export interface PendingDecision {
+  decisionRequestId: string
+  stepId: string
+  prompt: string
+  options: DecisionOption[]
+  context?: string
+  timeout?: number
+  onTimeout?: string
+  source: 'step' | 'ai'
+  requestedAt: number
 }
 
 export interface ValidationResult {
   valid: boolean
   errors?: string[]
+}
+
+export interface AIGenerateResponse {
+  ok: true
+  yaml_content: string
+  validation: ValidationResult
+  security: { security_level: 'safe' | 'needs_approval' | 'blocked'; issues: Array<{ severity: string; step_id?: string; message: string }> }
+  explanation: string
+}
+
+export interface AIModifyResponse {
+  ok: true
+  yaml_content: string
+  validation: ValidationResult
+  security: { security_level: string; issues: Array<{ severity: string; step_id?: string; message: string }> }
+  changes: string[]
+}
+
+export interface AIReviewResponse {
+  ok: true
+  review: {
+    score: number
+    issues: Array<{ severity: string; step_id?: string; message: string; suggestion?: string }>
+    best_practices: string[]
+    security?: { security_level: string; issues: Array<{ severity: string; message: string }> }
+  }
 }
 
 /* ─── API 调用 ─── */
@@ -195,4 +247,22 @@ export const pipelinesApi = {
     client.get<PipelineChatEvent[]>(`/api/pipelines/runs/${runId}/chat-events`, {
       params: { after_seq: afterSeq, limit },
     }),
+
+  // P3-B: Pipeline Decision
+  submitDecision: (runId: string, stepId: string, decisionRequestId: string, optionId: string) =>
+    client.post<{ ok: true; option_id: string }>(`/api/pipelines/runs/${runId}/decide`, {
+      step_id: stepId,
+      decision_request_id: decisionRequestId,
+      option_id: optionId,
+    }),
+
+  // P3-C: AI 辅助工作流设计
+  aiGenerate: (description: string, hints?: Record<string, unknown>) =>
+    client.post<AIGenerateResponse>('/api/pipelines/ai/generate', { description, hints }),
+
+  aiModify: (yamlContent: string, instruction: string) =>
+    client.post<AIModifyResponse>('/api/pipelines/ai/modify', { yaml_content: yamlContent, instruction }),
+
+  aiReview: (yamlContent: string) =>
+    client.post<AIReviewResponse>('/api/pipelines/ai/review', { yaml_content: yamlContent }),
 }
