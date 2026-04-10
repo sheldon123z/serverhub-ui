@@ -562,6 +562,7 @@ export default function PipelinesPage() {
       toast.success('Pipeline 创建成功')
       queryClient.invalidateQueries({ queryKey: ['pipelines'] })
       setSelectedId(data.id)
+      setWatchRunId(null)
       setShowCreateModal(false)
     },
     onError: (e) => toast.error(getErrorMessage(e, '创建失败')),
@@ -584,6 +585,7 @@ export default function PipelinesPage() {
       toast.success('已删除')
       queryClient.invalidateQueries({ queryKey: ['pipelines'] })
       setSelectedId(null)
+      setWatchRunId(null)
     },
     onError: (e) => toast.error(getErrorMessage(e, '删除失败')),
   })
@@ -713,6 +715,7 @@ export default function PipelinesPage() {
               type="button"
               onClick={() => {
                 setSelectedId(p.id)
+                setWatchRunId(null)
                 setDetailTab('edit')
               }}
               className={cn(

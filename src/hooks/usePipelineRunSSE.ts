@@ -177,7 +177,7 @@ export function usePipelineRunSSE(runId: string | null) {
   // 从历史事件恢复状态
   const hydrateFromHistory = useCallback(async (rid: string) => {
     try {
-      const res = await pipelinesApi.getChatEvents(rid, 0, 500)
+      const res = await pipelinesApi.getChatEvents(rid, lastSeqRef.current, 500)
       const events = res.data
       if (!events?.length) return
 
