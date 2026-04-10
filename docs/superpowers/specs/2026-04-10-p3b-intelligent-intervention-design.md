@@ -1,9 +1,10 @@
 # P3-B: 智能介入机制 — 设计文档
 
 > Date: 2026-04-10
-> Status: Draft
+> Status: Draft (v2 — Codex Review 修订)
 > Depends on: P3-A (已完成)
 > Scope: `decision` 步骤类型 + AI 主动触发人类介入
+> Review: 2026-04-10 Codex Adversarial Review 修正 3 个 HIGH 问题
 
 ## 1. 核心理念
 
@@ -207,42 +208,154 @@ def request_human_intervention(prompt: str, options: list[dict], timeout: int = 
     return result  # 人类选择的选项 ID
 ```
 
-### 3.4 决策 API
+### 3.4 决策 API — 原子性与幂等性
+
+**关键设计**：每个决策请求有唯一 `decision_request_id`，解析使用 compare-and-swap 语义防止竞态。
 
 ```
 POST /api/pipelines/runs/{run_id}/decide
 Body: {
     "step_id": "decide-action",
-    "option_id": "fix-critical",
-    "decided_by": "admin"          // 自动从 JWT 获取
+    "decision_request_id": "dr-uuid-xxx",   // 必填，来自 decision_request 事件
+    "option_id": "fix-critical"
+    // decided_by 自动从 JWT 获取
 }
 
-Response: {"ok": true}
+Response (成功): {"ok": true, "option_id": "fix-critical", "decided_by": "admin"}
+Response (已决策): {"ok": true, "already_decided": true, "option_id": "fix-critical"}
+Response (过期):  HTTPException(409, "决策请求已过期或不存在")
 ```
 
-### 3.5 SSE 事件协议
+**原子解析流程**：
 
-新增 2 个事件类型：
+```python
+async def resolve_decision(run_id, step_id, decision_request_id, option_id, decided_by):
+    db = await get_db()
+    # Compare-and-swap: 只有 status='waiting_decision' 且 request_id 匹配时才更新
+    result = await db.execute(
+        """UPDATE pipeline_step_logs
+           SET status = 'decided',
+               output_json = json_object(
+                   'chosen_option_id', ?,
+                   'decided_by', ?,
+                   'decided_at', datetime('now'),
+                   'decision_request_id', ?
+               ),
+               completed_at = datetime('now')
+           WHERE run_id = ? AND step_id = ? AND status = 'waiting_decision'""",
+        (option_id, decided_by, decision_request_id, run_id, step_id),
+    )
+    await db.commit()
+    if result.rowcount == 0:
+        # 可能已被决策（幂等返回）或已过期
+        existing = await db.execute_fetchone(
+            "SELECT output_json FROM pipeline_step_logs WHERE run_id = ? AND step_id = ? AND status = 'decided'",
+            (run_id, step_id),
+        )
+        if existing:
+            return {"already_decided": True, **json.loads(existing["output_json"])}
+        raise HTTPException(409, "决策请求已过期或不存在")
+    return {"ok": True, "option_id": option_id}
+```
 
-| 事件 | 数据字段 | 来源 |
+**幂等性保证**：
+- 同一 `decision_request_id` 的重复提交返回首次决策结果
+- 不同 `decision_request_id` 的提交被拒绝（409）
+- 超时后的提交被拒绝（status 已不是 `waiting_decision`）
+
+### 3.5 SSE 事件协议 — 统一载荷格式
+
+新增 2 个事件类型。**载荷字段与 `publish_chat_event` 参数严格对齐**，确保 SSE 实时流和 `pipeline_chat_events` 回放一致。
+
+| 事件 | 存储方式 | 说明 |
 |------|---------|------|
-| `decision_request` | `step_id, prompt, options[], context?, timeout, on_timeout?, source` | executor / AI 工具 |
-| `decision_resolved` | `step_id, chosen_option_id, decided_by` | decide API |
+| `decision_request` | `pipeline_chat_events` 持久化 + SSE 广播 | 通过 `publish_chat_event` 发布 |
+| `decision_resolved` | `pipeline_chat_events` 持久化 + SSE 广播 | 通过 `publish_chat_event` 发布 |
 
-`decision_request` 事件存入 `pipeline_chat_events` 表，支持断线重连回放。
+**`decision_request` 事件载荷（标准化）**：
+
+```python
+# 后端发布时
+await publish_chat_event(
+    run_id, "decision_request",
+    {
+        "decision_request_id": dr_id,      # 唯一请求 ID
+        "prompt": "安全扫描完成...",         # 决策描述
+        "options": [...],                   # 选项列表
+        "context": "...",                   # 前序步骤输出摘要
+        "timeout": 3600,                   # 超时秒数
+        "on_timeout": "skip",             # 超时默认选项
+        "source": "step",                  # "step" | "ai"
+    },
+    step_id=step_id,
+    content="安全扫描完成...",              # content = prompt（用于回放兼容）
+)
+```
+
+**前端消费时**（对齐 `publish_chat_event` 的存储格式）：
+
+```typescript
+// publish_chat_event 存入 pipeline_chat_events 时：
+// - content 列 = prompt 文本
+// - metadata_json 列 = {decision_request_id, options, context, timeout, on_timeout, source}
+// 
+// hydrateFromHistory 回放时：
+// - evt.content = prompt
+// - metadata_json 被 spread 到 evt 上（见 usePipelineRunSSE hydration 代码）
+// 
+// 因此前端统一读取：
+if (type === 'decision_request') {
+    next.pendingDecision = {
+        decisionRequestId: evt.decision_request_id,  // from metadata_json spread
+        stepId: evt.step_id,
+        prompt: evt.content ?? '',                    // from content column
+        options: evt.options ?? [],                   // from metadata_json spread
+        context: evt.context,
+        timeout: evt.timeout,
+        onTimeout: evt.on_timeout,
+        source: evt.source ?? 'step',
+        requestedAt: evt.timestamp,
+    }
+    return next
+}
+```
+
+**关键保证**：SSE 实时事件和 `getChatEvents` 历史回放产生完全相同的字段结构，断线重连后决策面板可正确恢复。
 
 ### 3.6 数据存储
 
-扩展 `pipeline_step_logs`：
+**不需要新建表**——复用现有两个表：
+
+**`pipeline_step_logs`**（步骤状态追踪）：
 
 ```sql
--- 在 pipeline_step_logs 表中，decision 步骤的记录
--- status: 'waiting_decision' → 'decided'
--- input_json: {prompt, options, timeout, on_timeout, context}
--- output_json: {chosen_option_id, decided_by, decided_at}
+-- decision 步骤的生命周期
+-- status: 'waiting_decision' → 'decided' (原子 CAS 更新)
+-- input_json: {
+--   prompt, options, timeout, on_timeout, context, 
+--   decision_request_id    ← 唯一请求 ID，用于幂等校验
+-- }
+-- output_json: {
+--   chosen_option_id, decided_by, decided_at,
+--   decision_request_id    ← 回写，用于审计
+-- }
 ```
 
-不需要新建表——复用现有 `pipeline_step_logs`（status 字段新增 `waiting_decision` / `decided` 值）和 `pipeline_chat_events`（事件持久化）。
+**`pipeline_chat_events`**（事件持久化 + 回放）：
+
+```sql
+-- decision_request 事件存储
+-- event_type = 'decision_request'
+-- step_id = 决策步骤 ID
+-- content = prompt 文本
+-- metadata_json = {decision_request_id, options, context, timeout, on_timeout, source}
+
+-- decision_resolved 事件存储
+-- event_type = 'decision_resolved'
+-- step_id = 决策步骤 ID
+-- content = chosen_option_id
+-- metadata_json = {decided_by, decision_request_id}
+```
 
 ## 4. 前端设计
 
@@ -338,16 +451,32 @@ if (type === 'decision_resolved') {
 
 | 文件 | 改动 |
 |------|------|
-| `components/pipeline-run/PipelineDecisionCard.tsx` | 从占位升级为交互式 |
+| `components/pipeline-run/PipelineDecisionCard.tsx` | 从占位升级为交互式（含 `decisionRequestId` 传递） |
 | `components/pipeline-run/StepStatusItem.tsx` | 渲染 decision 步骤状态 + 嵌入 DecisionCard |
-| `hooks/usePipelineRunSSE.ts` | 添加 pendingDecision 状态 + decision 事件处理 |
-| `api/pipelines.ts` | 新增 `submitDecision` API 方法 + Decision 类型 |
+| `hooks/usePipelineRunSSE.ts` | 添加 `pendingDecision` 状态（含 `decisionRequestId`） + decision 事件处理 |
+| `api/pipelines.ts` | 新增 `submitDecision(runId, stepId, decisionRequestId, optionId)` API 方法 + Decision 类型 |
 
 ### 5.4 前端新增
 
 | 文件 | 职责 |
 |------|------|
 | `components/pipeline-run/DecisionCountdown.tsx` | 超时倒计时组件 |
+
+### 5.5 可视化编辑器兼容（前端修改）
+
+`decision` 步骤引入后，可视化编辑器必须同步支持，否则在 Visual tab 中编辑会**静默丢弃** decision 步骤的 `options`、`next_step` 路由等关键字段（因为 `useFlowToYaml.ts` 无法序列化未知步骤类型）。
+
+| 文件 | 改动 |
+|------|------|
+| `api/pipelines.ts` | `StepDefinition.type` 联合类型添加 `'decision'` |
+| `components/pipeline-flow/StepPalette.tsx` | STEP_TYPES 数组 + STEP_LABELS 添加 decision |
+| `components/pipeline-flow/nodes/index.ts` | NODE_COLORS + NODE_ICONS + NODE_LABELS + nodeTypes 注册 decision |
+| `components/pipeline-flow/property-forms/index.ts` | 添加 DecisionPropertyForm（编辑 prompt/options/timeout/on_timeout） |
+| `components/pipeline-flow/useFlowToYaml.ts` | 添加 decision 步骤序列化（保留 options + next_step 路由） |
+| `components/pipeline-flow/useYamlToFlow.ts` | 添加 decision 步骤反序列化（options → edges） |
+| `lib/ui-schema-validation.ts` | 添加 decision 步骤的字段校验规则 |
+
+**Mermaid 渲染**（后端 compiler.py 已在 5.2 后端修改中列出）：decision 节点使用 `{菱形}` 形状（与 condition 一致但颜色不同），每个 option 生成一条带标签的边。
 
 ## 6. 成功标准
 

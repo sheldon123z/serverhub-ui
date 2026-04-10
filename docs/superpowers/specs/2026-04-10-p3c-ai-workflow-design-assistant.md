@@ -1,9 +1,10 @@
 # P3-C: AI 辅助工作流设计 — 设计文档
 
 > Date: 2026-04-10
-> Status: Draft
+> Status: Draft (v2 — Codex Review 修订)
 > Depends on: P3-A (已完成)，可与 P3-B 并行
 > Scope: 编辑器内嵌 AI 助手 — 生成、修改、审查 Pipeline YAML
+> Review: 2026-04-10 Codex Adversarial Review 修正 2 个 HIGH 问题
 
 ## 1. 核心理念
 
@@ -62,8 +63,8 @@ AI 输出: {
          ▼
 ┌─────────────────────┐
 │  构建 System Prompt   │
-│  ├── Pipeline Schema  │  ← 10 种步骤类型 + 字段定义
-│  ├── 4 个内置模板     │  ← few-shot 示例
+│  ├── Pipeline Schema  │  ← 动态步骤类型 + 字段定义（从 models.py 生成）
+│  ├── N 个内置模板     │  ← few-shot 示例（动态选择最相关的）
 │  ├── 模板变量语法     │  ← {{params.x}}, {{steps.y.output}}
 │  └── 最佳实践规则     │  ← 审查用
 └─────────┬───────────┘
@@ -74,21 +75,164 @@ AI 输出: {
 └─────────┬───────────┘
           │
           ▼
-┌─────────────────────┐
-│  后处理 + 验证        │
-│  ├── YAML parse 校验  │  ← 语法正确
-│  ├── Schema 校验      │  ← 字段合法
-│  ├── 引用校验         │  ← step ID、goto 目标存在
-│  └── 安全校验         │  ← 无危险命令模式
-└─────────┬───────────┘
-          │
-          ▼
-    返回 YAML + 验证结果
+┌──────────────────────────────┐
+│  后处理 + 结构化策略验证        │
+│  ├── YAML parse 校验          │  ← 语法正确
+│  ├── Schema 校验              │  ← 字段合法（动态 STEP_TYPES 校验）
+│  ├── 引用校验                 │  ← step ID、goto/next_step 目标存在
+│  ├── 安全策略验证（per-step）   │  ← 见下方 3.1.1 详细说明
+│  └── 标记安全等级              │  ← safe / needs_approval / blocked
+└──────────┬───────────────────┘
+           │
+           ▼
+    返回 YAML + 验证结果 + 安全等级
 ```
 
-### 3.2 System Prompt 设计
+#### 3.1.1 结构化安全策略验证
 
-核心系统提示词（约 3000 token），包含：
+**不使用正则匹配危险命令**（易绕过）。改为按步骤类型分别验证：
+
+```python
+# ai_service.py 中的安全策略验证
+
+STEP_SECURITY_POLICIES = {
+    "shell": {
+        "level": "privileged",          # shell 命令天然有权限风险
+        "requires_approval_before": True,  # 建议在前面加 approval/decision
+        "warnings": [
+            "shell 步骤可执行任意命令，建议设置 timeout",
+            "生产环境建议在 shell 步骤前添加 approval 步骤",
+        ],
+    },
+    "ssh": {
+        "level": "privileged",
+        "requires_approval_before": True,
+        "warnings": [
+            "SSH 远程执行有权限风险，建议限制 username 和 host 范围",
+        ],
+    },
+    "http": {
+        "level": "moderate",
+        "check": lambda step: (
+            "warning" if step.get("method") in ("POST", "PUT", "DELETE")
+            else "safe"
+        ),
+        "warnings": ["写入类 HTTP 请求建议设置 timeout 和 on_failure"],
+    },
+    "agent": {"level": "safe"},         # 只读工具集
+    "approval": {"level": "safe"},
+    "decision": {"level": "safe"},
+    "condition": {"level": "safe"},
+    "parallel": {"level": "check_branches"},  # 递归检查子步骤
+    "notify": {"level": "safe"},
+    "delay": {"level": "safe"},
+    "playbook": {
+        "level": "moderate",
+        "warnings": ["Playbook 可能包含写入操作，建议审查 playbook 内容"],
+    },
+}
+
+
+def validate_pipeline_security(parsed: dict) -> dict:
+    """结构化安全策略验证"""
+    issues = []
+    overall_level = "safe"  # safe / needs_approval / blocked
+    
+    steps = parsed.get("steps", [])
+    for i, step in enumerate(steps):
+        step_type = step.get("type", "")
+        policy = STEP_SECURITY_POLICIES.get(step_type)
+        if not policy:
+            issues.append({
+                "severity": "error",
+                "step_id": step.get("id"),
+                "message": f"未知步骤类型: {step_type}",
+            })
+            continue
+        
+        # 检查是否需要前置审批
+        if policy.get("requires_approval_before"):
+            has_approval_before = any(
+                s.get("type") in ("approval", "decision")
+                for s in steps[:i]
+            )
+            if not has_approval_before:
+                issues.append({
+                    "severity": "warning",
+                    "step_id": step.get("id"),
+                    "message": f"{step_type} 步骤（{step.get('name', step.get('id'))}）"
+                               f"前没有 approval/decision 步骤，建议添加以确保安全",
+                })
+                overall_level = "needs_approval"
+        
+        # 添加步骤类型特定的 warnings
+        for w in policy.get("warnings", []):
+            issues.append({
+                "severity": "info",
+                "step_id": step.get("id"),
+                "message": w,
+            })
+    
+    return {
+        "security_level": overall_level,
+        "issues": issues,
+    }
+```
+
+**API 响应中的安全等级**：
+
+```json
+{
+    "ok": true,
+    "yaml_content": "...",
+    "validation": { "valid": true, "errors": [] },
+    "security": {
+        "security_level": "needs_approval",
+        "issues": [
+            {"severity": "warning", "step_id": "deploy-cmd", "message": "shell 步骤前没有 approval 步骤"}
+        ]
+    }
+}
+```
+
+前端在 `security_level === "needs_approval"` 时显示黄色警告提示："该流水线包含特权操作，建议在应用前审查。"
+
+### 3.2 System Prompt 设计 — 动态 Schema 注入
+
+**关键设计**：步骤类型 schema 从运行时 `models.py` 的 `STEP_TYPES` 和 `StepDefinition` 动态生成，**不硬编码**。这样 P3-B 新增 `decision` 步骤后，P3-C 自动识别。
+
+```python
+# ai_service.py 中动态构建 schema 部分
+
+def _build_step_type_schema() -> str:
+    """从 models.py 动态生成步骤类型 schema 文档"""
+    from modules.pipelines.models import STEP_TYPES, StepDefinition
+    
+    # 每种步骤类型的字段描述（从 StepDefinition 的字段注解提取）
+    type_docs = {
+        "shell": "执行 Shell 命令\n  command: '...'  # 必填\n  timeout: 300",
+        "ssh": "SSH 远程执行\n  host: '{{params.target_server}}'  # 必填\n  username: 'root'\n  command: '...'  # 必填",
+        "agent": "AI 分析（只读）\n  prompt: '...'  # 必填\n  output_format: json | text\n  max_tool_calls: 20",
+        "approval": "人工审批\n  assignee: admin\n  timeout: 3600",
+        "decision": "人工决策（多选项路由）\n  prompt: '...'  # 必填\n  context_from: step-id  # 引用前序步骤输出\n  options:\n    - id: option-id\n      label: 显示文本\n      description: 描述\n      next_step: target-step-id\n  timeout: 3600\n  on_timeout: default-option-id",
+        "condition": "条件分支\n  expression: '...'  # 必填\n  on_true: target-step-id\n  on_false: target-step-id",
+        "parallel": "并行执行\n  branches:  # 必填\n    - id: branch-1\n      type: shell\n      command: '...'",
+        "http": "HTTP 请求\n  url: '...'  # 必填\n  method: GET | POST | PUT | DELETE\n  headers: {}\n  body: {}",
+        "notify": "发送通知\n  channel: telegram | email | webhook\n  message: '...'  # 支持模板变量",
+        "delay": "延迟等待\n  seconds: 60",
+        "playbook": "执行 Playbook\n  playbook_id: '...'\n  params: {}",
+    }
+    
+    lines = []
+    # 从 STEP_TYPES 动态获取当前支持的所有类型
+    for step_type in get_args(STEP_TYPES):
+        doc = type_docs.get(step_type, f"{step_type} — 详见文档")
+        lines.append(f"#### {step_type} — {doc}")
+    
+    return "\n\n".join(lines)
+```
+
+系统提示词模板（固定部分 + 动态部分）：
 
 ```
 你是 ServerHub Pipeline YAML 生成助手。
@@ -113,53 +257,9 @@ params:
     default: 默认值
     description: 描述
 
-### 10 种步骤类型
+### 步骤类型（当前支持 {step_count} 种）
 
-#### shell — 执行 Shell 命令
-  command: "..."                    # 必填
-  timeout: 300
-
-#### ssh — SSH 远程执行
-  host: "{{params.target_server}}"  # 必填
-  username: "root"
-  command: "..."                    # 必填
-
-#### agent — AI 分析（只读）
-  prompt: "..."                     # 必填
-  output_format: json | text
-  max_tool_calls: 20
-
-#### approval — 人工审批
-  assignee: admin
-  timeout: 3600
-
-#### condition — 条件分支
-  expression: "..."                 # 必填，如 "{{steps.scan.output.risk}} >= 3"
-  on_true: target-step-id
-  on_false: target-step-id
-
-#### parallel — 并行执行
-  branches:                         # 必填，子步骤列表
-    - id: branch-1
-      type: shell
-      command: "..."
-
-#### http — HTTP 请求
-  url: "..."                        # 必填
-  method: GET | POST | PUT | DELETE
-  headers: {}
-  body: {}
-
-#### notify — 发送通知
-  channel: telegram | email | webhook
-  message: "..."                    # 支持模板变量
-
-#### delay — 延迟等待
-  seconds: 60
-
-#### playbook — 执行 Playbook
-  playbook_id: "..."
-  params: {}
+{dynamic_step_schema}                    ← 从 _build_step_type_schema() 动态注入
 
 ### 模板变量
 {{params.xxx}} — 运行参数
@@ -174,11 +274,14 @@ abort (默认) | skip | notify_continue | goto:{step_id}
 ## 生成规则
 1. 每个步骤必须有唯一 id（英文、连字符）
 2. condition 的 on_true/on_false 必须引用有效的 step id
-3. 关键操作前建议添加 approval 步骤
-4. shell 命令建议设置 timeout
-5. agent 步骤的 prompt 要具体明确
-6. 输出纯 YAML，不要包含 markdown 代码块标记
+3. decision 的 options[].next_step 必须引用有效的 step id
+4. 关键操作前建议添加 approval 或 decision 步骤
+5. shell 命令建议设置 timeout
+6. agent 步骤的 prompt 要具体明确
+7. 输出纯 YAML，不要包含 markdown 代码块标记
 ```
+
+**P3-B 兼容性保证**：当 P3-B 在 `models.py` 的 `STEP_TYPES` 中添加 `"decision"` 后，`_build_step_type_schema()` 自动将其包含在 AI prompt 中。P3-C 无需任何代码改动即可生成/修改/审查包含 `decision` 步骤的 Pipeline。
 
 ### 3.3 Few-shot 示例注入
 
@@ -533,8 +636,10 @@ def _select_relevant_templates(description: str) -> list[str]:
 3. 可基于指令修改现有 YAML，显示改动 diff
 4. AI 审查给出评分 + 具体改进建议
 5. 生成/修改响应时间 < 10 秒
-6. 支持所有 10 种步骤类型的生成
+6. 支持所有当前注册的步骤类型（动态从 `STEP_TYPES` 读取，包括 P3-B 新增的 `decision`）
 7. 前端 UI 流畅，loading 状态清晰
+8. AI 生成的包含特权操作（shell/ssh）的 Pipeline 返回 `security_level: needs_approval` 警告
+9. P3-B 新增 `decision` 步骤后无需修改 P3-C 代码即可自动支持
 
 ## 8. 不做的事（YAGNI）
 
